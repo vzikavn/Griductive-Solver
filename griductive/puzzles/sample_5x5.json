@@ -1,0 +1,10 @@
+{
+  "grid_size": 5,
+  "initial_revealed": [
+    [
+      0,
+      0
+    ]
+  ],
+  "description": "Sample 5x5 Griductive deduction puzzle"
+}

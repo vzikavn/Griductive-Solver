@@ -1,0 +1,10 @@
+{
+  "grid_size": 4,
+  "initial_revealed": [
+    [
+      0,
+      0
+    ]
+  ],
+  "description": "Sample 4x4 Griductive deduction puzzle"
+}

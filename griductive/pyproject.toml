@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "griductive"
+version = "0.1.0"
+description = "Grid-deduction puzzle game and DPLL SAT LogicAgent architecture"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pygame>=2.5.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "mypy>=1.11.0",
+    "ruff>=0.6.0",
+    "pytest>=8.0.0",
+]
+
+[project.scripts]
+griductive = "griductive.main:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.mypy]
+python_version = "3.14"
+strict = true
+mypy_path = "src/griductive"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
