@@ -1,17 +1,14 @@
-"""Core data structures and domain models for the Griductive deduction puzzle game.
-
-This module enforces strict type safety and immutability across the boundary
-between the authoritative GameEngine and the player-facing LogicAgent.
-"""
+"""Core data structures and domain models for the Griductive deduction puzzle game."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from enum import Enum, StrEnum, auto
-from typing import Final, TypeAlias
+from enum import StrEnum
+from typing import Final
 
-# Coordinate alias representing (row_index, col_index), 0-indexed.
-Coordinate: TypeAlias = tuple[int, int]
+type Coordinate = tuple[int, int]
+type Literal = int
+type Clause = frozenset[Literal]
 
 VALID_GRID_SIZES: Final[frozenset[int]] = frozenset({3, 4, 5})
 
@@ -31,13 +28,22 @@ class RevealedStatus(StrEnum):
     INNOCENT = "INNOCENT"
 
 
+class CellEntailment(StrEnum):
+    """Logical consequence classification of an unsolved character under KB_t."""
+
+    CRIMINAL = "CRIMINAL"
+    INNOCENT = "INNOCENT"
+    UNKNOWN = "UNKNOWN"
+    INCONSISTENT = "INCONSISTENT"
+
+
 class VerdictResponseType(StrEnum):
     """Engine evaluation outcome when a player or agent submits a verdict."""
 
-    ACCEPTED = "ACCEPTED"  # Logically forced and matches truth; flips the card.
-    NOT_PROVABLE = "NOT_PROVABLE"  # Neither Criminal nor Innocent is logically forced yet.
-    CONTRADICTED = "CONTRADICTED"  # The opposite status is logically forced by public clues.
-    ALREADY_REVEALED = "ALREADY_REVEALED"  # Target cell is already flipped face-up.
+    ACCEPTED = "ACCEPTED"
+    NOT_PROVABLE = "NOT_PROVABLE"
+    CONTRADICTED = "CONTRADICTED"
+    ALREADY_REVEALED = "ALREADY_REVEALED"
 
 
 class RegionType(StrEnum):
@@ -47,30 +53,27 @@ class RegionType(StrEnum):
     COLUMN = "COLUMN"
     NEIGHBORS = "NEIGHBORS"
     EXPLICIT_LIST = "EXPLICIT_LIST"
+    # Extension 1: Advanced region expressions
+    CORNERS = "CORNERS"
+    BOUNDARY = "BOUNDARY"
 
 
 class ClueType(StrEnum):
     """Logical constraint classification for a character's clue."""
 
-    FACT = "FACT"  # Direct assertion about targets (e.g., target statuses).
-    SAME = "SAME"  # All referenced targets share the same status.
-    DIFFERENT = "DIFFERENT"  # Referenced targets do not all share the same status.
-    EXACTLY = "EXACTLY"  # Exactly K targets in the region have target_status.
-    AT_LEAST = "AT_LEAST"  # At least K targets in the region have target_status.
-    AT_MOST = "AT_MOST"  # At most K targets in the region have target_status.
+    FACT = "FACT"
+    SAME = "SAME"
+    DIFFERENT = "DIFFERENT"
+    EXACTLY = "EXACTLY"
+    AT_LEAST = "AT_LEAST"
+    AT_MOST = "AT_MOST"
+    # Extension 2: Parity constraint (count=0 for EVEN, count=1 for ODD)
+    PARITY = "PARITY"
 
 
 @dataclass(frozen=True, slots=True)
 class ClueRegion:
-    """Structured spatial region defining which coordinates a Clue constrains.
-
-    Attributes:
-        region_type: The spatial rule category (ROW, COLUMN, NEIGHBORS, EXPLICIT_LIST).
-        index: Row or column index (0-based) when region_type is ROW or COLUMN.
-        center: Anchor coordinate when region_type is NEIGHBORS.
-        explicit_coords: Tuple of specific coordinates when region_type is EXPLICIT_LIST.
-        exclude_self: Whether to omit the clue owner's coordinate from the resolved set.
-    """
+    """Structured spatial region defining which coordinates a Clue constrains."""
 
     region_type: RegionType
     index: int | None = None
@@ -89,7 +92,9 @@ class ClueRegion:
         match self.region_type:
             case RegionType.ROW:
                 if self.index is None or not (0 <= self.index < grid_size):
-                    raise ValueError(f"Invalid row index {self.index} for grid size {grid_size}.")
+                    raise ValueError(
+                        f"Invalid row index {self.index} for grid size {grid_size}."
+                    )
                 coords = {(self.index, c) for c in range(grid_size)}
 
             case RegionType.COLUMN:
@@ -103,6 +108,10 @@ class ClueRegion:
                 if self.center is None:
                     raise ValueError("NEIGHBORS region requires a center coordinate.")
                 cr, cc = self.center
+                if not (0 <= cr < grid_size and 0 <= cc < grid_size):
+                    raise ValueError(
+                        f"NEIGHBORS center {(cr, cc)} out of bounds for size {grid_size}."
+                    )
                 for dr in (-1, 0, 1):
                     for dc in (-1, 0, 1):
                         if dr == 0 and dc == 0:
@@ -119,6 +128,19 @@ class ClueRegion:
                         )
                     coords.add((r, c))
 
+            case RegionType.CORNERS:
+                last = grid_size - 1
+                coords = {(0, 0), (0, last), (last, 0), (last, last)}
+
+            case RegionType.BOUNDARY:
+                last = grid_size - 1
+                coords = {
+                    (r, c)
+                    for r in range(grid_size)
+                    for c in range(grid_size)
+                    if r in (0, last) or c in (0, last)
+                }
+
         if self.exclude_self and owner_coord is not None:
             coords.discard(owner_coord)
 
@@ -127,15 +149,7 @@ class ClueRegion:
 
 @dataclass(frozen=True, slots=True)
 class Clue:
-    """Immutable logical clue attached to a cell.
-
-    Attributes:
-        clue_type: Logical operator type (FACT, SAME, DIFFERENT, EXACTLY, AT_LEAST, AT_MOST).
-        region: Spatial descriptor of cells governed by this clue.
-        target_status: The status being counted or asserted (CRIMINAL or INNOCENT).
-        count: Cardinality threshold K for EXACTLY, AT_LEAST, or AT_MOST clues.
-        text: Human-readable clue statement displayed on the card when revealed.
-    """
+    """Immutable logical clue attached to a cell."""
 
     clue_type: ClueType
     region: ClueRegion
@@ -146,19 +160,24 @@ class Clue:
     def __post_init__(self) -> None:
         """Validates semantic consistency between clue_type and count."""
         cardinality_types = {ClueType.EXACTLY, ClueType.AT_LEAST, ClueType.AT_MOST}
-        if self.clue_type in cardinality_types and self.count is None:
-            raise ValueError(f"ClueType {self.clue_type} requires a non-null integer 'count'.")
-        if self.clue_type not in cardinality_types and self.count is not None:
-            raise ValueError(f"ClueType {self.clue_type} must not specify 'count'.")
+        if self.clue_type in cardinality_types:
+            if self.count is None or self.count < 0:
+                raise ValueError(
+                    f"ClueType {self.clue_type} requires a non-negative integer 'count'."
+                )
+        elif self.clue_type == ClueType.PARITY:
+            if self.count not in (0, 1):
+                raise ValueError(
+                    "ClueType PARITY requires 'count' to be 0 (EVEN) or 1 (ODD)."
+                )
+        else:
+            if self.count is not None:
+                raise ValueError(f"ClueType {self.clue_type} must not specify 'count'.")
 
 
 @dataclass(slots=True)
 class CharacterCell:
-    """Authoritative internal cell state managed exclusively by GameEngine.
-
-    Contains both hidden truth and public state. NEVER pass instances of
-    CharacterCell directly to LogicAgent.
-    """
+    """Authoritative internal cell state managed exclusively by GameEngine."""
 
     coord: Coordinate
     name: str
@@ -173,10 +192,7 @@ class CharacterCell:
         return self.revealed_status != RevealedStatus.UNKNOWN
 
     def to_public_view(self) -> PublicCellView:
-        """Projects this authoritative cell into a sanitized, immutable public snapshot.
-
-        Strictly strips `hidden_status` and masks `clue` if the cell is still face-down.
-        """
+        """Projects this authoritative cell into a sanitized, immutable public snapshot."""
         return PublicCellView(
             coord=self.coord,
             name=self.name,
@@ -187,12 +203,19 @@ class CharacterCell:
 
 
 @dataclass(frozen=True, slots=True)
-class PublicCellView:
-    """Sanitized, read-only projection of a cell exposed to LogicAgent and the GUI.
+class PuzzleDefinition:
+    """Blueprint used to initialize or reset a puzzle level in GameEngine."""
 
-    Guarantees at the type and runtime level that hidden statuses and unrevealed
-    clues cannot be accessed by the agent.
-    """
+    grid_size: int
+    cells: tuple[CharacterCell, ...]
+    initial_revealed: frozenset[Coordinate]
+    puzzle_id: str = "unnamed"
+    total_criminals: int | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class PublicCellView:
+    """Sanitized, read-only projection of a cell exposed to LogicAgent and the GUI."""
 
     coord: Coordinate
     name: str
@@ -203,10 +226,7 @@ class PublicCellView:
 
 @dataclass(frozen=True, slots=True)
 class PublicKnowledgeState:
-    """Complete read-only snapshot of all publicly observable board state.
-
-    Passed across the architectural boundary from GameEngine to LogicAgent.
-    """
+    """Complete read-only snapshot of all publicly observable board state."""
 
     grid_size: int
     cells: dict[Coordinate, PublicCellView]
@@ -225,11 +245,13 @@ class PublicKnowledgeState:
         }
 
     def get_unknown_coordinates(self) -> tuple[Coordinate, ...]:
-        """Returns all coordinates whose status is still UNKNOWN."""
+        """Returns all coordinates whose status is still UNKNOWN in row-major order."""
         return tuple(
-            coord
-            for coord, view in self.cells.items()
-            if view.revealed_status == RevealedStatus.UNKNOWN
+            sorted(
+                coord
+                for coord, view in self.cells.items()
+                if view.revealed_status == RevealedStatus.UNKNOWN
+            )
         )
 
 
@@ -242,3 +264,15 @@ class VerdictResult:
     response_type: VerdictResponseType
     message: str
     public_state: PublicKnowledgeState
+
+
+@dataclass(frozen=True, slots=True)
+class DeductionStep:
+    """Single logged step in the LogicAgent's deduction trace."""
+
+    step_number: int
+    active_clue_coords: tuple[Coordinate, ...]
+    sat_queries: int
+    target_coord: Coordinate
+    verdict: HiddenStatus
+    newly_revealed_clue: str | None = None

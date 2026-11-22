@@ -11,7 +11,7 @@ def test_public_state_hides_unrevealed_clues_and_hidden_status() -> None:
     agent = LogicAgent()
     agent.observe(public_state)
 
-    for coord, cell_view in public_state.cells.items():
+    for cell_view in public_state.cells.values():
         assert isinstance(cell_view, PublicCellView)
         assert not hasattr(cell_view, "hidden_status")
         if cell_view.revealed_status == RevealedStatus.UNKNOWN:

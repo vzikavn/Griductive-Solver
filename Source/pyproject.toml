@@ -19,16 +19,26 @@ dev = [
     "pytest>=8.0.0",
 ]
 
-[project.scripts]
-griductive = "griductive.main:main"
-
-[tool.setuptools.packages.find]
-where = ["src"]
+[tool.setuptools]
+package-dir = { "" = "src" }
+py-modules = [
+    "models",
+    "solver",
+    "encoder",
+    "puzzle_loader",
+    "agent",
+    "engine",
+    "gui",
+]
 
 [tool.mypy]
-python_version = "3.14"
+python_version = "3.12"
 strict = true
-mypy_path = "src/griductive"
+mypy_path = "src"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
 
 [tool.ruff]
 line-length = 100

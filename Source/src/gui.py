@@ -1,21 +1,21 @@
-"""Pygame GUI layout and interactive rendering loop for Griductive (GTA 6 Vice Sunset Edition).
+"""Pygame GUI layout and interactive rendering loop for Griductive (Sunset Dark Theme).
 
 Cleanly separates presentation and user input from `GameEngine` and `LogicAgent`.
 Features:
 - Borderless Windowed Fullscreen support (`pygame.NOFRAME` at desktop resolution via `F11` or `Alt+Enter`)
   plus Maximized / Resizable Windowed mode so Alt-Tab is instant and never locks the display
-- Custom Character-by-Character Tracking (Letter-Spacing) Renderer for Pricedown Black/White
+- Custom Character-by-Character Tracking (Letter-Spacing) Renderer for display font
   so glyphs never collide or look squished
-- GTA 6 Sunset Gradient Background (Deep Violet -> Purple -> Magenta -> Coral Pink -> Coral -> Orange -> Warm Yellow)
+- Sunset Gradient Background (Deep Violet -> Purple -> Magenta -> Coral Pink -> Coral -> Orange -> Warm Yellow)
 - Original Griductive two-column layout that scales dynamically to any window resolution
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import os
+from collections.abc import Callable
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable
 
 import pygame
 
@@ -29,14 +29,15 @@ from models import (
     RevealedStatus,
     VerdictResponseType,
 )
+from puzzle_loader import PuzzleLoader
 
 # Column letters for alphanumeric grid labels (A1, B1, C1...)
 COL_LETTERS: tuple[str, ...] = ("A", "B", "C", "D", "E", "F", "G")
 
 
 @dataclass(frozen=True, slots=True)
-class GTA6Palette:
-    """GTA 6 Vice City Sunset palette and high-contrast card theme."""
+class SunsetPalette:
+    """Sunset gradient palette and high-contrast card theme."""
 
     # 7 requested sunset gradient stops (top to bottom)
     deep_violet: tuple[int, int, int] = (28, 12, 58)
@@ -58,7 +59,7 @@ class GTA6Palette:
     card_border_highlight: tuple[int, int, int] = (255, 214, 92)
     card_border_selected: tuple[int, int, int] = (255, 255, 255)
 
-    # Typography colors (Pricedown Black / White aesthetic)
+    # Typography colors
     text_white: tuple[int, int, int] = (255, 255, 255)
     text_black: tuple[int, int, int] = (14, 10, 22)
     text_muted: tuple[int, int, int] = (210, 198, 226)
@@ -83,7 +84,7 @@ class GTA6Palette:
         )
 
 
-PALETTE = GTA6Palette()
+PALETTE = SunsetPalette()
 
 # Procedural avatar color presets so every suspect has a distinct portrait
 AVATAR_SKIN_TONES: tuple[tuple[int, int, int], ...] = (
@@ -129,10 +130,14 @@ class GriductiveGUI:
     MIN_HEIGHT: int = 680
     FPS: int = 60
 
+
+    AUTO_SOLVE_INTERVAL_MS: int = 350
+
     def __init__(
         self,
         engine: GameEngine,
         agent: LogicAgent,
+        puzzle_paths: list[Path] | None = None,
         start_windowed_fullscreen: bool = True,
     ) -> None:
         self._engine: GameEngine = engine
@@ -146,7 +151,8 @@ class GriductiveGUI:
         self._highlighted_coords: frozenset[Coordinate] = frozenset()
 
         self._status_message: str = (
-            "Tap a suspect to call them criminal or innocent. Press F11 to toggle Windowed Fullscreen."
+            "Tap a suspect to call them criminal or innocent. "
+            "Press F11 to toggle Windowed Fullscreen."
         )
         self._status_color: tuple[int, int, int] = PALETTE.warm_yellow
 
@@ -182,13 +188,23 @@ class GriductiveGUI:
         self._font_body: pygame.font.Font | None = None
         self._font_pill: pygame.font.Font | None = None
 
-    def _load_pricedown_or_fallback(self, size: int) -> pygame.font.Font:
+        # Puzzle loader & continuous Auto Solve state (4 dòng mới thêm)
+        self._puzzle_paths: list[Path] = (
+            list(puzzle_paths)
+            if puzzle_paths is not None
+            else PuzzleLoader.discover_puzzles()
+        )
+        self._current_puzzle_idx: int = 0
+        self._auto_solving: bool = False
+        self._last_auto_step_ms: int = 0
+
+    def _load_display_font(self, size: int) -> pygame.font.Font:
         """Loads Pricedown Black (.ttf/.otf) from disk or system fonts without artificial bold fattening."""
         search_dirs = [
             Path.cwd(),
             Path(__file__).resolve().parent,
             Path(__file__).resolve().parent / "assets" / "fonts",
-            Path(__file__).resolve().parent.parent.parent / "assets" / "fonts",
+            Path(__file__).resolve().parent.parent / "assets" / "fonts",
         ]
         candidate_names = (
             "pricedown bl.otf",
@@ -225,7 +241,7 @@ class GriductiveGUI:
         """Initializes Pygame in Borderless Windowed Fullscreen (or Resizable Window) mode."""
         pygame.init()
         pygame.display.set_caption(
-            "Griductive — Vice Sunset Edition (F11: Windowed Fullscreen)"
+            "Griductive — Logical Deduction Solver (F11: Windowed Fullscreen)"
         )
 
         self._desktop_size = self._detect_desktop_resolution()
@@ -236,10 +252,10 @@ class GriductiveGUI:
         )
 
         # Load Pricedown Black for headers and clean geometric sans for small UI/button labels
-        self._font_logo = self._load_pricedown_or_fallback(52)
-        self._font_section = self._load_pricedown_or_fallback(22)
-        self._font_card_name = self._load_pricedown_or_fallback(21)
-        self._font_card_name_small = self._load_pricedown_or_fallback(17)
+        self._font_logo = self._load_display_font(52)
+        self._font_section = self._load_display_font(22)
+        self._font_card_name = self._load_display_font(21)
+        self._font_card_name_small = self._load_display_font(17)
         self._font_pill = pygame.font.SysFont("DejaVu Sans", 14, bold=True)
 
         self._font_card_prof = pygame.font.SysFont("DejaVu Sans Mono,DejaVu Sans", 12, bold=True)
@@ -298,7 +314,7 @@ class GriductiveGUI:
         self._recompute_grid_layout()
 
     def _create_sunset_gradient_surface(self, width: int, height: int) -> pygame.Surface:
-        """Pre-renders the 7-color GTA 6 sunset gradient at the current window resolution."""
+        """Pre-renders the 7-color sunset gradient at the current window resolution."""
         surf = pygame.Surface((width, height))
         stops = PALETTE.gradient_stops
         num_segments = len(stops) - 1
@@ -428,6 +444,12 @@ class GriductiveGUI:
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     self._handle_mouse_click(event.pos, event.button)
 
+            if self._auto_solving:
+                now_ms = pygame.time.get_ticks()
+                if now_ms - self._last_auto_step_ms >= self.AUTO_SOLVE_INTERVAL_MS:
+                    self._last_auto_step_ms = now_ms
+                    self._execute_single_auto_solve_step()
+
             self._render_frame(mouse_pos)
             pygame.display.flip()
             clock.tick(self.FPS)
@@ -469,6 +491,7 @@ class GriductiveGUI:
 
     def _on_cell_clicked(self, coord: Coordinate, mouse_button: int) -> None:
         """Handles clicking a suspect card on the grid."""
+        self._auto_solving = False 
         cell_view = self._public_state.get_cell(coord)
         label = self._format_coord_label(coord)
 
@@ -532,25 +555,40 @@ class GriductiveGUI:
         self._set_status(f"[{result.response_type}] {result.message}", color)
 
     def _on_load_clicked(self) -> None:
-        """Cycles between 3x3, 4x4, and 5x5 grid sizes."""
-        next_size_map = {3: 4, 4: 5, 5: 3}
-        next_size = next_size_map.get(self._public_state.grid_size, 3)
-        sample_puzzle = GameEngine.create_sample_puzzle(grid_size=next_size)
-        self._public_state = self._engine.load_puzzle(sample_puzzle)
-        self._agent.observe(self._public_state)
+        """Cycles through JSON puzzles in `puzzles/`; falls back to sample puzzles."""
+        self._auto_solving = False
+        if self._puzzle_paths:
+            self._current_puzzle_idx = (
+                self._current_puzzle_idx + 1
+            ) % len(self._puzzle_paths)
+            next_path = self._puzzle_paths[self._current_puzzle_idx]
+            puzzle = PuzzleLoader.load_from_json(next_path)
+            self._public_state = self._engine.load_puzzle(puzzle)
+            status_msg = (
+                f"Loaded '{puzzle.puzzle_id}' ({puzzle.grid_size}x{puzzle.grid_size}) "
+                f"from {next_path.name}."
+            )
+        else:
+            next_size = {3: 4, 4: 5, 5: 3}.get(self._public_state.grid_size, 3)
+            puzzle = GameEngine.create_sample_puzzle(grid_size=next_size)
+            self._public_state = self._engine.load_puzzle(puzzle)
+            status_msg = (
+                f"No complete JSON in puzzles/. Loaded fallback {next_size}x{next_size}."
+            )
 
+        self._agent.reset_session()
+        self._agent.observe(self._public_state)
         self._selected_coord = None
         self._active_clue_owner = None
         self._highlighted_coords = frozenset()
         self._recompute_grid_layout()
-        self._set_status(
-            f"Loaded {next_size}x{next_size} scenario. Click A1 to highlight its clue region!",
-            PALETTE.warm_yellow,
-        )
+        self._set_status(status_msg, PALETTE.warm_yellow)
 
     def _on_restart_clicked(self) -> None:
         """Resets the current puzzle to its starting state."""
+        self._auto_solving = False
         self._public_state = self._engine.restart_puzzle()
+        self._agent.reset_session()
         self._agent.observe(self._public_state)
         self._selected_coord = None
         self._active_clue_owner = None
@@ -576,19 +614,63 @@ class GriductiveGUI:
             )
 
     def _on_auto_solve_clicked(self) -> None:
-        """Executes one automated deduction step via LogicAgent."""
+        """Toggles continuous timer-based Auto Solve ON or OFF."""
+        if self._engine.is_solved:
+            self._auto_solving = False
+            self._set_status(
+                "Puzzle is already completely solved!", PALETTE.card_border_innocent
+            )
+            return
+
+        self._auto_solving = not self._auto_solving
+        if self._auto_solving:
+            self._last_auto_step_ms = 0
+            self._set_status(
+                "Auto Solve started... (Click again to pause)", PALETTE.orange
+            )
+        else:
+            self._set_status("Auto Solve paused.", PALETTE.warm_yellow)
+
+    def _execute_single_auto_solve_step(self) -> None:
+        """Executes one deterministic deduction step for the Auto Solve timer loop."""
+        if self._engine.is_solved:
+            self._auto_solving = False
+            self._set_status(
+                "Auto Solve complete! All characters proved.",
+                PALETTE.card_border_innocent,
+            )
+            return
+
         try:
             move = self._agent.compute_next_auto_solve_step()
         except NotImplementedError as exc:
-            self._set_status(f"Auto Solve placeholder: {exc}", PALETTE.warm_yellow)
+            self._auto_solving = False
+            self._set_status(f"Auto Solve stopped ({exc})", PALETTE.warm_yellow)
             return
 
         if move is None:
-            self._set_status("Auto Solve: No forced deductions available.", PALETTE.warm_yellow)
+            self._auto_solving = False
+            self._set_status(
+                "Auto Solve stopped: No forced deductions available.",
+                PALETTE.warm_yellow,
+            )
             return
 
         self._selected_coord = move.coord
         self._submit_selected_verdict(move.proved_status)
+
+        revealed_cell = self._public_state.get_cell(move.coord)
+        clue_text = (
+            revealed_cell.revealed_clue.text if revealed_cell.revealed_clue else None
+        )
+        self._agent.record_accepted_move(move, clue_text)
+
+        if self._engine.is_solved:
+            self._auto_solving = False
+            self._set_status(
+                "Auto Solve complete! All characters proved.",
+                PALETTE.card_border_innocent,
+            )
 
     def _set_status(
         self,
@@ -643,7 +725,7 @@ class GriductiveGUI:
         return pygame.Rect(start_x, start_y, total_w, max_h)
 
     def _render_frame(self, mouse_pos: tuple[int, int]) -> None:
-        """Renders the full GTA 6 Sunset background, left info column, N x N grid, and bottom pills."""
+        """Renders the full sunset gradient background, left info column, N x N grid, and bottom pills."""
         assert self._screen is not None
         assert self._bg_surface is not None
 
@@ -697,11 +779,11 @@ class GriductiveGUI:
             letter_spacing=4,
         )
 
-        # VICE • GRID pill + LEVEL dots
+        # LOGIC • GRID pill + LEVEL dots
         badge_rect = pygame.Rect(x, y + 76, 128, 32)
         pygame.draw.rect(self._screen, PALETTE.pill_bg, badge_rect, border_radius=16)
         pygame.draw.rect(self._screen, PALETTE.warm_yellow, badge_rect, width=1, border_radius=16)
-        badge_lbl = self._font_coord.render("VICE  •  GRID", True, PALETTE.warm_yellow)
+        badge_lbl = self._font_coord.render("LOGIC  •  GRID", True, PALETTE.warm_yellow)
         self._screen.blit(badge_lbl, badge_lbl.get_rect(center=badge_rect.center))
 
         lvl_lbl = self._font_coord.render("LEVEL", True, PALETTE.text_white)
