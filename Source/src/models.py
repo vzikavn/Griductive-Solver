@@ -10,7 +10,7 @@ type Coordinate = tuple[int, int]
 type Literal = int
 type Clause = frozenset[Literal]
 
-VALID_GRID_SIZES: Final[frozenset[int]] = frozenset({3, 4, 5})
+VALID_GRID_SIZES: Final[frozenset[int]] = frozenset({3, 4, 5, 6})
 
 
 class HiddenStatus(StrEnum):
