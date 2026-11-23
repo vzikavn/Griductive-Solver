@@ -37,9 +37,9 @@ def parse_args() -> argparse.Namespace:
         help="Optional path to a specific JSON puzzle file.",
     )
     parser.add_argument(
-        "--windowed",
+        "--fullscreen",
         action="store_true",
-        help="Start in a standard resizable window instead of Borderless Windowed Fullscreen.",
+        help="Start in Borderless Windowed Fullscreen instead of a standard resizable window.",
     )
     return parser.parse_args()
 
@@ -64,7 +64,7 @@ def main() -> None:
         engine=engine,
         agent=agent,
         puzzle_paths=puzzle_paths,
-        start_windowed_fullscreen=not args.windowed,
+        start_windowed_fullscreen=args.fullscreen, 
     )
     gui.run()
 

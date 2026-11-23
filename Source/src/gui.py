@@ -150,12 +150,6 @@ class GriductiveGUI:
         self._active_clue_owner: Coordinate | None = None
         self._highlighted_coords: frozenset[Coordinate] = frozenset()
 
-        self._status_message: str = (
-            "Tap a suspect to call them criminal or innocent. "
-            "Press F11 to toggle Windowed Fullscreen."
-        )
-        self._status_color: tuple[int, int, int] = PALETTE.warm_yellow
-
         # Windowed Fullscreen (Borderless) vs Standard Resizable Window state
         self._win_w: int = self.DEFAULT_WIDTH
         self._win_h: int = self.DEFAULT_HEIGHT
@@ -188,7 +182,7 @@ class GriductiveGUI:
         self._font_body: pygame.font.Font | None = None
         self._font_pill: pygame.font.Font | None = None
 
-        # Puzzle loader & continuous Auto Solve state (4 dòng mới thêm)
+        # Puzzle loader & continuous Auto Solve state
         self._puzzle_paths: list[Path] = (
             list(puzzle_paths)
             if puzzle_paths is not None
@@ -197,6 +191,22 @@ class GriductiveGUI:
         self._current_puzzle_idx: int = 0
         self._auto_solving: bool = False
         self._last_auto_step_ms: int = 0
+
+        # Persistent Verdict Log History (Max 3 lines)
+        self._status_log: list[tuple[str, tuple[int, int, int]]] = [
+            ("Welcome to Griductive. Logic engine initialized.", PALETTE.text_muted)
+        ]
+        
+        # Transient UI State (Renders at the bottom of the box)
+        self._transient_message: str = "Tap a suspect to call them criminal or innocent."
+        self._transient_color: tuple[int, int, int] = PALETTE.warm_yellow
+        
+        # Animation & Polish
+        self._pulse_timers: dict[Coordinate, int] = {}
+        
+        # Architecture: Data-Driven Level Select
+        self._show_level_select: bool = False
+        self._level_buttons: list[UIButton] = []
 
     def _load_display_font(self, size: int) -> pygame.font.Font:
         """Loads Pricedown Black (.ttf/.otf) from disk or system fonts without artificial bold fattening."""
@@ -340,7 +350,7 @@ class GriductiveGUI:
     def _build_control_pills(self) -> None:
         """Builds the bottom control pills and top window-mode / quit buttons."""
         labels_and_callbacks: list[tuple[str, Callable[[], None], tuple[int, int, int]]] = [
-            ("Load (3x3 / 4x4 / 5x5)", self._on_load_clicked, PALETTE.coral_pink),
+            ("Choose level", self._on_load_clicked, PALETTE.coral_pink),
             ("Restart", self._on_restart_clicked, PALETTE.coral),
             ("Hint", self._on_hint_clicked, PALETTE.warm_yellow),
             ("Auto Solve", self._on_auto_solve_clicked, PALETTE.orange),
@@ -385,10 +395,13 @@ class GriductiveGUI:
         self._running = False
 
     def _recompute_grid_layout(self) -> None:
-        """Calculates clean card rectangles for the active N x N grid."""
+        """Calculates clean card rectangles scaling dynamically based on grid size."""
         self._cell_rects.clear()
         n = self._public_state.grid_size
-        gap = 12
+        
+        # ARCHITECTURE: Dynamic gap scaling. 3x3 gets 16px, 5x5 gets 8px.
+        gap = max(6, 24 - (n * 4)) 
+        
         avail_w = self._grid_area_rect.width - gap * (n - 1)
         avail_h = self._grid_area_rect.height - gap * (n - 1)
         card_w = avail_w // n
@@ -458,6 +471,16 @@ class GriductiveGUI:
 
     def _handle_mouse_click(self, pos: tuple[int, int], button: int) -> None:
         """Routes mouse clicks across window buttons, action pills, verdict popups, and cards."""
+        if self._show_level_select:
+            if button == 1:
+                for btn in self._level_buttons:
+                    if btn.rect.collidepoint(pos):
+                        btn.callback()
+                        return
+                # Clicking outside the modal closes it
+                self._show_level_select = False
+            return
+        
         if button == 1:
             if self._window_mode_btn is not None and self._window_mode_btn.rect.collidepoint(pos):
                 self._window_mode_btn.callback()
@@ -500,7 +523,7 @@ class GriductiveGUI:
             if self._active_clue_owner == coord:
                 self._active_clue_owner = None
                 self._highlighted_coords = frozenset()
-                self._set_status(f"Cleared clue region highlight for {cell_view.name} ({label}).")
+                self._set_status(f"Cleared clue region highlight for {cell_view.name} ({label}).", log=False)
             elif cell_view.revealed_clue is not None:
                 self._active_clue_owner = coord
                 self._highlighted_coords = cell_view.revealed_clue.region.resolve_coordinates(
@@ -510,6 +533,7 @@ class GriductiveGUI:
                 self._set_status(
                     f"{cell_view.name} ({label}): \"{cell_view.revealed_clue.text}\"",
                     PALETTE.warm_yellow,
+                    log=False
                 )
             return
 
@@ -519,11 +543,13 @@ class GriductiveGUI:
         else:
             if self._selected_coord == coord:
                 self._selected_coord = None
+                self._set_status("Selection cleared.", log=False)
             else:
                 self._selected_coord = coord
                 self._set_status(
-                    f"Calling {cell_view.name} ({label}) — choose INNOCENT or CRIMINAL on the card.",
+                    f"Calling {cell_view.name} ({label}) — choose INNOCENT or CRIMINAL.",
                     PALETTE.text_white,
+                    log=False
                 )
 
     def _submit_selected_verdict(self, proposed_status: HiddenStatus) -> None:
@@ -544,6 +570,8 @@ class GriductiveGUI:
         match result.response_type:
             case VerdictResponseType.ACCEPTED:
                 color = PALETTE.card_border_innocent
+                # TRIGGER PULSE EFFECT ON SUCCESS
+                self._pulse_timers[target] = pygame.time.get_ticks()
                 self._selected_coord = None
             case VerdictResponseType.NOT_PROVABLE:
                 color = PALETTE.warm_yellow
@@ -555,34 +583,60 @@ class GriductiveGUI:
         self._set_status(f"[{result.response_type}] {result.message}", color)
 
     def _on_load_clicked(self) -> None:
-        """Cycles through JSON puzzles in `puzzles/`; falls back to sample puzzles."""
+        """Toggles the data-driven level selection overlay."""
         self._auto_solving = False
-        if self._puzzle_paths:
-            self._current_puzzle_idx = (
-                self._current_puzzle_idx + 1
-            ) % len(self._puzzle_paths)
-            next_path = self._puzzle_paths[self._current_puzzle_idx]
-            puzzle = PuzzleLoader.load_from_json(next_path)
-            self._public_state = self._engine.load_puzzle(puzzle)
-            status_msg = (
-                f"Loaded '{puzzle.puzzle_id}' ({puzzle.grid_size}x{puzzle.grid_size}) "
-                f"from {next_path.name}."
-            )
-        else:
-            next_size = {3: 4, 4: 5, 5: 3}.get(self._public_state.grid_size, 3)
-            puzzle = GameEngine.create_sample_puzzle(grid_size=next_size)
-            self._public_state = self._engine.load_puzzle(puzzle)
-            status_msg = (
-                f"No complete JSON in puzzles/. Loaded fallback {next_size}x{next_size}."
-            )
+        self._show_level_select = not self._show_level_select
+        
+        if self._show_level_select:
+            self._build_level_buttons()
+            
+    def _build_level_buttons(self) -> None:
+        """Dynamically generates buttons based on discovered JSON puzzle files."""
+        self._level_buttons.clear()
+        modal_w, modal_h = 600, 500
+        start_x = (self._win_w - modal_w)//2 + 50
+        start_y = (self._win_h - modal_h)//2 + 100
+        
+        btn_w, btn_h = 240, 40
+        gap = 20
+        
+        # Create a callback factory to avoid late-binding closure issues
+        def make_callback(path: Path | None, size: int | None = None) -> Callable[[], None]:
+            def callback():
+                if path:
+                    puzzle = PuzzleLoader.load_from_json(path)
+                    msg = f"Loaded '{puzzle.puzzle_id}' from {path.name}."
+                else:
+                    puzzle = GameEngine.create_sample_puzzle(grid_size=size)
+                    msg = f"Loaded Fallback {size}x{size}."
+                
+                self._public_state = self._engine.load_puzzle(puzzle)
+                self._agent.reset_session()
+                self._agent.observe(self._public_state)
+                self._recompute_grid_layout()
+                self._set_status(msg, PALETTE.card_border_innocent)
+                self._show_level_select = False
+            return callback
 
-        self._agent.reset_session()
-        self._agent.observe(self._public_state)
-        self._selected_coord = None
-        self._active_clue_owner = None
-        self._highlighted_coords = frozenset()
-        self._recompute_grid_layout()
-        self._set_status(status_msg, PALETTE.warm_yellow)
+        # Add JSON files
+        col, row = 0, 0
+        for path in self._puzzle_paths:
+            rect = pygame.Rect(start_x + col*(btn_w+gap), start_y + row*(btn_h+gap), btn_w, btn_h)
+            self._level_buttons.append(UIButton(
+                label=f"Load {path.stem}", rect=rect, callback=make_callback(path), accent_color=PALETTE.coral_pink
+            ))
+            row += 1
+            if row > 6:
+                row = 0
+                col += 1
+                
+        # Add Fallbacks if no files exist
+        if not self._puzzle_paths:
+            for i, size in enumerate([3, 4, 5]):
+                rect = pygame.Rect(start_x, start_y + i*(btn_h+gap), btn_w, btn_h)
+                self._level_buttons.append(UIButton(
+                    label=f"Fallback {size}x{size}", rect=rect, callback=make_callback(None, size), accent_color=PALETTE.warm_yellow
+                ))
 
     def _on_restart_clicked(self) -> None:
         """Resets the current puzzle to its starting state."""
@@ -676,10 +730,17 @@ class GriductiveGUI:
         self,
         message: str,
         color: tuple[int, int, int] = PALETTE.text_white,
+        log: bool = True
     ) -> None:
-        """Updates the feedback message shown in the status bar."""
-        self._status_message = message
-        self._status_color = color
+        """Updates feedback. If log=True, records it in the history."""
+        if log:
+            self._status_log.append((message, color))
+            if len(self._status_log) > 3:  # Max 3 persistent lines to fit the box
+                self._status_log.pop(0)
+            self._transient_message = ""   # Clear transient prompts when a real action happens
+        else:
+            self._transient_message = message
+            self._transient_color = color
 
     def _render_spaced_text(
         self,
@@ -738,6 +799,9 @@ class GriductiveGUI:
 
         self._render_bottom_pills(mouse_pos)
 
+        if self._show_level_select:
+            self._render_level_select_overlay(mouse_pos)
+
     def _render_left_info_panel(self, mouse_pos: tuple[int, int]) -> None:
         """Renders the left branding, window mode toggles, instructions, and status log."""
         assert self._screen is not None
@@ -749,7 +813,8 @@ class GriductiveGUI:
         assert self._font_clue is not None
 
         x = self._left_panel_x
-        y = max(96, (self._win_h - 560) // 2)
+        # Adjusted total height from 560 to 500 to keep the panel vertically centered
+        y = max(96, (self._win_h - 500) // 2)
 
         # Windowed Fullscreen / Windowed Mode button + Quit button
         for top_btn in (self._window_mode_btn, self._quit_btn):
@@ -767,55 +832,59 @@ class GriductiveGUI:
                 btn_surf = self._font_coord.render(top_btn.label, True, top_btn.accent_color)
                 self._screen.blit(btn_surf, btn_surf.get_rect(center=top_btn.rect.center))
 
-        # Detective Silhouette Icon + "Griductive" Title with generous letter-spacing
+        # Detective Silhouette Icon + "Griductive" Title
         self._draw_detective_icon(x + 22, y + 30)
         self._render_spaced_text(
             "Griductive",
             self._font_logo,
             (x + 56, y),
             fg_color=PALETTE.text_white,
-            shadow_color=PALETTE.text_black,
+            shadow_color=PALETTE.magenta, 
             shadow_offset=3,
             letter_spacing=4,
         )
 
-        # LOGIC • GRID pill + LEVEL dots
-        badge_rect = pygame.Rect(x, y + 76, 128, 32)
-        pygame.draw.rect(self._screen, PALETTE.pill_bg, badge_rect, border_radius=16)
-        pygame.draw.rect(self._screen, PALETTE.warm_yellow, badge_rect, width=1, border_radius=16)
-        badge_lbl = self._font_coord.render("LOGIC  •  GRID", True, PALETTE.warm_yellow)
-        self._screen.blit(badge_lbl, badge_lbl.get_rect(center=badge_rect.center))
-
+        # LEVEL text aligned to the left (shifted up)
         lvl_lbl = self._font_coord.render("LEVEL", True, PALETTE.text_white)
-        self._screen.blit(lvl_lbl, (x + 148, y + 84))
-        dot_colors = (
-            PALETTE.warm_yellow,
-            PALETTE.orange,
-            PALETTE.coral,
-            PALETTE.coral_pink,
-            PALETTE.magenta,
-        )
-        for i, dcol in enumerate(dot_colors):
-            pygame.draw.circle(self._screen, dcol, (x + 206 + i * 16, y + 92), 5)
+        self._screen.blit(lvl_lbl, (x, y + 76))
+        
+        # Map grid size to a specific difficulty color (Green -> Dark Red)
+        grid_size = self._public_state.grid_size
+        difficulty_colors = {
+            3: (82, 214, 154),   # Green (Easy)
+            4: (255, 214, 92),   # Yellow (Medium)
+            5: (252, 158, 66),   # Orange (Hard)
+            6: (178, 34, 34),    # Dark Red (Extreme)
+        }
+        level_color = difficulty_colors.get(grid_size, PALETTE.text_white)
+        
+        # Get current puzzle name and format it cleanly
+        level_name = self._engine.puzzle_id.replace("_", " ").upper()
+        if len(level_name) > 18:
+            level_name = level_name[:15] + "..."
+            
+        lvl_name_surf = self._font_coord.render(level_name, True, level_color)
+        self._screen.blit(lvl_name_surf, (x + 58, y + 76)) # Offset from 'x' to follow 'LEVEL'
 
-        # Subtitle
-        sub_surf = self._font_body.render("A daily grid-deduction puzzle.", True, PALETTE.text_white)
-        self._screen.blit(sub_surf, (x, y + 128))
-
-        # Divider line
+        # Divider line (shifted up by 60px to close the gap)
         pygame.draw.line(
             self._screen,
             PALETTE.warm_yellow,
-            (x, y + 164),
-            (x + 80, y + 164),
+            (x, y + 104),
+            (x + 80, y + 104),
             width=2,
         )
 
-        # HOW TO PLAY section
+        # HOW TO PLAY panel (shifted up by 60px)
+        how_to_rect = pygame.Rect(x, y + 112, self._left_panel_w - 10, 226)
+        panel_surf = pygame.Surface((how_to_rect.width, how_to_rect.height), pygame.SRCALPHA)
+        pygame.draw.rect(panel_surf, (*PALETTE.card_unknown_bg, 210), panel_surf.get_rect(), border_radius=12)
+        self._screen.blit(panel_surf, how_to_rect.topleft)
+
         self._render_spaced_text(
             "HOW TO PLAY",
             self._font_section,
-            (x, y + 182),
+            (x + 16, y + 124),
             fg_color=PALETTE.warm_yellow,
             shadow_offset=2,
             letter_spacing=3,
@@ -828,41 +897,53 @@ class GriductiveGUI:
             "• Only call what the clues prove.",
             "• Click any revealed clue to spotlight its region.",
         ]
-        ry = y + 222
+        ry = y + 164
         for idx, line in enumerate(rules):
             color = PALETTE.text_white if idx == 0 else PALETTE.text_muted
             self._render_wrapped_text(
                 text=line,
                 font=self._font_body,
                 color=color,
-                x=x,
+                x=x + 16,
                 y=ry,
-                max_width=self._left_panel_w - 16,
-                shadow=True,
+                max_width=self._left_panel_w - 42,
+                shadow=False,
             )
             ry += 40 if idx == 0 else 32
 
-        # Live Feedback Status Box
-        status_box = pygame.Rect(x, y + 414, self._left_panel_w - 10, 102)
+        # Live Feedback Status Box (Verdict Log) (shifted up by 60px)
+        status_box = pygame.Rect(x, y + 354, self._left_panel_w - 10, 102)
         pygame.draw.rect(self._screen, PALETTE.pill_bg, status_box, border_radius=12)
-        pygame.draw.rect(self._screen, self._status_color, status_box, width=2, border_radius=12)
+        pygame.draw.rect(self._screen, PALETTE.card_border_default, status_box, width=2, border_radius=12)
 
         self._render_spaced_text(
             "VERDICT LOG",
             self._font_card_name_small,
             (status_box.x + 14, status_box.y + 10),
-            fg_color=self._status_color,
+            fg_color=PALETTE.text_white,
             shadow_offset=1,
             letter_spacing=2,
         )
-        self._render_wrapped_text(
-            text=self._status_message,
-            font=self._font_clue,
-            color=PALETTE.text_white,
-            x=status_box.x + 14,
-            y=status_box.y + 38,
-            max_width=status_box.width - 28,
-        )
+        
+        # Render the persistent rolling history
+        log_y = status_box.y + 32
+        for msg, color in self._status_log:
+            surf = self._font_clue.render(msg, True, color)
+            self._screen.blit(surf, (status_box.x + 14, log_y))
+            log_y += 16
+            
+        # Draw the transient UI message at the bottom if it exists
+        if self._transient_message:
+            # Subtle divider line
+            pygame.draw.line(
+                self._screen, 
+                PALETTE.card_unknown_bg, 
+                (status_box.x + 14, status_box.bottom - 26), 
+                (status_box.right - 14, status_box.bottom - 26), 
+                width=2
+            )
+            transient_surf = self._font_clue.render(self._transient_message, True, self._transient_color)
+            self._screen.blit(transient_surf, (status_box.x + 14, status_box.bottom - 22))
 
     def _draw_detective_icon(self, cx: int, cy: int) -> None:
         """Draws a sleek fedora detective silhouette icon beside the Griductive title."""
@@ -1057,6 +1138,28 @@ class GriductiveGUI:
                     center_horizontal=True,
                     card_centerx=rect.centerx,
                 )
+            # POLISH 1: Render Transparent Status Stamp for Revealed Cards
+        if cell.revealed_status != RevealedStatus.UNKNOWN:
+            stamp_txt = "INNOCENT" if cell.revealed_status == RevealedStatus.INNOCENT else "CRIMINAL"
+            stamp_col = PALETTE.card_border_innocent if cell.revealed_status == RevealedStatus.INNOCENT else PALETTE.card_border_criminal
+            stamp_surf = self._font_card_name.render(stamp_txt, True, stamp_col)
+            stamp_surf.set_alpha(45) # Subtle background watermark
+            stamp_surf = pygame.transform.rotate(stamp_surf, 25)
+            self._screen.blit(stamp_surf, stamp_surf.get_rect(center=(rect.centerx, rect.centery + 15)))
+
+        # POLISH 2: Render Expanding Pulse Effect for Newly Accepted Moves
+        if cell.coord in self._pulse_timers:
+            elapsed = pygame.time.get_ticks() - self._pulse_timers[cell.coord]
+            duration_ms = 450
+            if elapsed < duration_ms:
+                progress = elapsed / duration_ms
+                expansion = int(35 * progress)
+                pulse_rect = rect.inflate(expansion, expansion)
+                alpha = int(255 * (1.0 - progress))
+                
+                pulse_surf = pygame.Surface(pulse_rect.size, pygame.SRCALPHA)
+                pygame.draw.rect(pulse_surf, (*border_color[:3], alpha), pulse_surf.get_rect(), width=3, border_radius=12)
+                self._screen.blit(pulse_surf, pulse_rect.topleft)
 
     def _render_bottom_pills(self, mouse_pos: tuple[int, int]) -> None:
         """Renders the rounded bottom pill buttons with clean spacing."""
@@ -1065,17 +1168,31 @@ class GriductiveGUI:
 
         for pill in self._control_pills:
             is_hovered = pill.rect.collidepoint(mouse_pos)
-            bg = PALETTE.pill_hover if is_hovered else PALETTE.pill_bg
+            
+            # IMPROVEMENT: Dynamic color-fill transition on hover
+            if is_hovered:
+                bg = pill.accent_color
+                text_col = PALETTE.text_black
+                shadow_col = pill.accent_color  # Hide shadow on hover
+            else:
+                bg = PALETTE.pill_bg
+                text_col = PALETTE.text_white
+                shadow_col = PALETTE.text_black
+
             pygame.draw.rect(self._screen, bg, pill.rect, border_radius=19)
-            pygame.draw.rect(
-                self._screen, pill.accent_color, pill.rect, width=2, border_radius=19
-            )
+            
+            # Draw the colored stroke ONLY when not hovered
+            if not is_hovered:
+                pygame.draw.rect(
+                    self._screen, pill.accent_color, pill.rect, width=2, border_radius=19
+                )
+
             self._render_spaced_text(
                 pill.label,
                 self._font_pill,
                 pill.rect.center,
-                fg_color=PALETTE.text_white,
-                shadow_color=PALETTE.text_black,
+                fg_color=text_col,
+                shadow_color=shadow_col,
                 shadow_offset=1,
                 letter_spacing=1,
                 center=True,
@@ -1127,3 +1244,39 @@ class GriductiveGUI:
                 self._screen.blit(surf, surf.get_rect(center=(card_centerx, line_y)))
             else:
                 self._screen.blit(surf, (x, line_y))
+
+    def _render_level_select_overlay(self, mouse_pos: tuple[int, int]) -> None:
+        """Renders a data-driven level selection modal over the game."""
+        assert self._screen is not None
+        
+        # Darken the background
+        overlay = pygame.Surface((self._win_w, self._win_h), pygame.SRCALPHA)
+        overlay.fill((14, 10, 22, 210))
+        self._screen.blit(overlay, (0, 0))
+        
+        modal_w, modal_h = 600, 500
+        modal_rect = pygame.Rect((self._win_w - modal_w)//2, (self._win_h - modal_h)//2, modal_w, modal_h)
+        pygame.draw.rect(self._screen, PALETTE.pill_bg, modal_rect, border_radius=16)
+        pygame.draw.rect(self._screen, PALETTE.coral_pink, modal_rect, width=2, border_radius=16)
+        
+        self._render_spaced_text(
+            "SELECT PUZZLE", 
+            self._font_logo, 
+            (modal_rect.centerx, modal_rect.y + 50), 
+            fg_color=PALETTE.text_white, 
+            shadow_color=PALETTE.magenta, 
+            center=True
+        )
+
+        # Draw Level Buttons dynamically
+        for btn in self._level_buttons:
+            is_hovered = btn.rect.collidepoint(mouse_pos)
+            bg = btn.accent_color if is_hovered else PALETTE.card_unknown_bg
+            txt_col = PALETTE.text_black if is_hovered else PALETTE.text_white
+            
+            pygame.draw.rect(self._screen, bg, btn.rect, border_radius=8)
+            if not is_hovered:
+                pygame.draw.rect(self._screen, btn.accent_color, btn.rect, width=1, border_radius=8)
+                
+            btn_surf = self._font_coord.render(btn.label, True, txt_col)
+            self._screen.blit(btn_surf, btn_surf.get_rect(center=btn.rect.center))
