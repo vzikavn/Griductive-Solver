@@ -182,7 +182,6 @@ class GriductiveGUI:
         self._font_clue: pygame.font.Font | None = None
         self._font_body: pygame.font.Font | None = None
         self._font_pill: pygame.font.Font | None = None
-        self._font_stamp: pygame.font.Font | None = None
 
         # Puzzle loader & continuous Auto Solve state
         self._puzzle_paths: list[Path] = (
@@ -272,7 +271,6 @@ class GriductiveGUI:
         self._font_section = self._load_display_font(22)
         self._font_card_name = self._load_display_font(21)
         self._font_card_name_small = self._load_display_font(17)
-        self._font_stamp = self._load_display_font(38)
         self._font_pill = pygame.font.SysFont("DejaVu Sans", 14, bold=True)
 
         self._font_card_prof = pygame.font.SysFont("DejaVu Sans Mono,DejaVu Sans", 12, bold=True)
@@ -1081,17 +1079,6 @@ class GriductiveGUI:
                     card_centerx=rect.centerx,
                     shadow=True,
                 )
-
-        # POLISH 1: Render Transparent Status Stamp for Revealed Cards
-        if cell.revealed_status != RevealedStatus.UNKNOWN:
-            stamp_txt = "INNOCENT" if cell.revealed_status == RevealedStatus.INNOCENT else "CRIMINAL"
-            stamp_col = PALETTE.card_border_innocent if cell.revealed_status == RevealedStatus.INNOCENT else PALETTE.card_border_criminal
-            
-            # Use the new giant stamp font
-            stamp_surf = self._font_stamp.render(stamp_txt, True, stamp_col)
-            stamp_surf.set_alpha(35) 
-            stamp_surf = pygame.transform.rotate(stamp_surf, 25)
-            self._screen.blit(stamp_surf, stamp_surf.get_rect(center=rect.center))
 
         # Render Expanding Pulse Effect for Newly Accepted Moves
         if cell.coord in self._pulse_timers:
