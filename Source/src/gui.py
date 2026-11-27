@@ -214,34 +214,48 @@ class GriductiveGUI:
         self._show_settings: bool = False
         self._settings_menu_btns: list[UIButton] = []
 
-    def _load_display_font(self, size: int) -> pygame.font.Font:
-        """Loads Pricedown Black (.ttf/.otf) from disk or system fonts without artificial bold fattening."""
+    def _load_font_family(
+        self,
+        disk_candidates: tuple[str, ...],
+        sys_candidates: tuple[str, ...],
+        size: int,
+        bold: bool = False,
+    ) -> pygame.font.Font:
+        """Loads a font from bundled asset paths or the first available system font."""
         search_dirs = [
             Path.cwd(),
             Path(__file__).resolve().parent,
             Path(__file__).resolve().parent / "assets" / "fonts",
             Path(__file__).resolve().parent.parent / "assets" / "fonts",
         ]
-        candidate_names = (
-            "pricedown bl.otf",
-            "pricedown bl.ttf",
-            "Pricedown Black.ttf",
-            "Pricedown Black.otf",
-            "pricedown.ttf",
-            "pricedown.otf",
-        )
         for folder in search_dirs:
-            for fname in candidate_names:
+            for fname in disk_candidates:
                 fpath = folder / fname
                 if fpath.is_file():
                     return pygame.font.Font(str(fpath), size)
 
-        for sys_name in ("pricedownblack", "pricedown", "impact", "arialblack"):
-            matched = pygame.font.match_font(sys_name)
+        for sys_name in sys_candidates:
+            matched = pygame.font.match_font(sys_name, bold=bold)
             if matched:
                 return pygame.font.Font(matched, size)
 
-        return pygame.font.SysFont("dejavusans", size, bold=True)
+        return pygame.font.SysFont(",".join(sys_candidates), size, bold=bold)
+
+    def _load_display_font(self, size: int) -> pygame.font.Font:
+        """Loads Pricedown Black (.ttf/.otf) from disk or system fonts without artificial bold fattening."""
+        return self._load_font_family(
+            disk_candidates=(
+                "pricedown bl.otf",
+                "pricedown bl.ttf",
+                "Pricedown Black.ttf",
+                "Pricedown Black.otf",
+                "pricedown.ttf",
+                "pricedown.otf",
+            ),
+            sys_candidates=("pricedownblack", "pricedown", "impact", "arialblack"),
+            size=size,
+            bold=False,
+        )
 
     def _detect_desktop_resolution(self) -> tuple[int, int]:
         """Detects the primary monitor's native desktop resolution before creating the window."""
@@ -266,17 +280,30 @@ class GriductiveGUI:
             max(self.MIN_HEIGHT, int(self._desktop_size[1] * 0.85)),
         )
 
-        # Load fonts
+        # Load fonts (original display font + Roboto/Consolas for UI & smaller content)
+        ui_sans = ("roboto", "segoeui", "dejavusans", "arial")
+        ui_mono = ("consolas", "cascadiamono", "dejavusansmono", "couriernew")
+
         self._font_logo = self._load_display_font(52)
         self._font_section = self._load_display_font(22)
         self._font_card_name = self._load_display_font(21)
         self._font_card_name_small = self._load_display_font(17)
-        self._font_pill = pygame.font.SysFont("DejaVu Sans", 14, bold=True)
+        self._font_pill = self._load_font_family(
+            ("Roboto-Bold.ttf",), ("robotobold", "segoeuisemibold", *ui_sans), 14, bold=True
+        )
 
-        self._font_card_prof = pygame.font.SysFont("DejaVu Sans Mono,DejaVu Sans", 12, bold=True)
-        self._font_coord = pygame.font.SysFont("DejaVu Sans Mono,DejaVu Sans", 12, bold=True)
-        self._font_clue = pygame.font.SysFont("DejaVu Sans", 15, bold=False)
-        self._font_body = pygame.font.SysFont("DejaVu Sans", 16, bold=False)
+        self._font_card_prof = self._load_font_family(
+            ("Roboto-Regular.ttf",), ui_sans, 12, bold=False
+        )
+        self._font_coord = self._load_font_family(
+            ("Consolas.ttf",), ui_mono, 12, bold=True
+        )
+        self._font_clue = self._load_font_family(
+            ("Roboto-Regular.ttf",), ui_sans, 15, bold=False
+        )
+        self._font_body = self._load_font_family(
+            ("Roboto-Regular.ttf",), ui_sans, 15, bold=False
+        )
 
         self._apply_window_mode()
 
