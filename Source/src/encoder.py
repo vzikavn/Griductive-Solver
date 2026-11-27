@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from itertools import combinations
+from typing import Literal as TypingLiteral
 
 from models import (
     Clause,
@@ -40,6 +42,17 @@ class EncodedKB:
 
 class CNFEncoder:
     """Automatically compiles structured clues and known verdicts into CNF."""
+
+    def __init__(
+        self,
+        cardinality_mode: TypingLiteral["combinatorial", "sequential"] = "combinatorial",
+    ) -> None:
+        if cardinality_mode not in ("combinatorial", "sequential"):
+            raise ValueError(
+                f"Unsupported cardinality_mode {cardinality_mode!r}. "
+                "Expected 'combinatorial' or 'sequential'."
+            )
+        self.cardinality_mode: TypingLiteral["combinatorial", "sequential"] = cardinality_mode
 
     @staticmethod
     def build_var_map(grid_size: int) -> dict[Coordinate, int]:
@@ -135,6 +148,112 @@ class CNFEncoder:
         )
         return EncodedKB(clauses=tuple(clauses), var_map=var_map, stats=stats)
 
+    @staticmethod
+    def _xor2_clauses(a: int, b: int, parity: int) -> list[Clause]:
+        """Encodes (a XOR b) == parity (0 for EVEN, 1 for ODD) into 2 binary clauses."""
+        if parity == 1:
+            return [frozenset({a, b}), frozenset({-a, -b})]
+        return [frozenset({-a, b}), frozenset({a, -b})]
+
+    @staticmethod
+    def _xor3_eq_clauses(out_var: int, a: int, b: int) -> list[Clause]:
+        """Encodes out_var <-> (a XOR b) into 4 ternary CNF clauses."""
+        return [
+            frozenset({-a, -b, -out_var}),
+            frozenset({a, b, -out_var}),
+            frozenset({-a, b, out_var}),
+            frozenset({a, -b, out_var}),
+        ]
+
+    def _encode_parity(
+        self,
+        lits: tuple[int, ...],
+        parity: int,
+        next_aux_var: int,
+    ) -> tuple[list[Clause], int]:
+        """Encodes sum(lits) % 2 == parity using linear Tseitin XOR chaining."""
+        m = len(lits)
+        if m == 1:
+            lit = lits[0] if parity == 1 else -lits[0]
+            return [frozenset({lit})], next_aux_var
+        if m == 2:
+            return self._xor2_clauses(lits[0], lits[1], parity), next_aux_var
+
+        clauses: list[Clause] = []
+        prev_var = next_aux_var
+        next_aux_var += 1
+        clauses.extend(self._xor3_eq_clauses(prev_var, lits[0], lits[1]))
+
+        for idx in range(2, m - 1):
+            curr_var = next_aux_var
+            next_aux_var += 1
+            clauses.extend(self._xor3_eq_clauses(curr_var, prev_var, lits[idx]))
+            prev_var = curr_var
+
+        clauses.extend(self._xor2_clauses(prev_var, lits[-1], parity))
+        return clauses, next_aux_var
+
+    @staticmethod
+    def _encode_at_most_combinatorial(lits: tuple[int, ...], k: int) -> list[Clause]:
+        """Encodes sum(lits) <= k directly via C(m, k + 1) negative clauses (0 aux vars)."""
+        m = len(lits)
+        if k >= m:
+            return []
+        if k < 0:
+            return [frozenset()]
+        return [frozenset(-lit for lit in subset) for subset in combinations(lits, k + 1)]
+
+    @staticmethod
+    def _encode_at_most_sequential(
+        lits: tuple[int, ...],
+        k: int,
+        next_aux_var: int,
+    ) -> tuple[list[Clause], int]:
+        """Encodes sum(lits) <= k via Sinz's O(m * k) sequential counter network."""
+        m = len(lits)
+        if k >= m:
+            return [], next_aux_var
+        if k < 0:
+            return [frozenset()], next_aux_var
+        if k == 0:
+            return [frozenset({-lit}) for lit in lits], next_aux_var
+
+        # Allocate auxiliary register variables s[i][j] for i in 0..m-2, j in 0..k-1
+        # Meaning: s[i][j] is True iff sum(lits[0..i]) >= j + 1
+        s: list[list[int]] = []
+        for _ in range(m - 1):
+            row: list[int] = []
+            for _ in range(k):
+                row.append(next_aux_var)
+                next_aux_var += 1
+            s.append(row)
+
+        clauses: list[Clause] = [frozenset({-lits[0], s[0][0]})]
+        for j in range(1, k):
+            clauses.append(frozenset({-s[0][j]}))
+
+        for i in range(1, m - 1):
+            clauses.append(frozenset({-lits[i], s[i][0]}))
+            clauses.append(frozenset({-s[i - 1][0], s[i][0]}))
+            for j in range(1, k):
+                clauses.append(frozenset({-lits[i], -s[i - 1][j - 1], s[i][j]}))
+                clauses.append(frozenset({-s[i - 1][j], s[i][j]}))
+            clauses.append(frozenset({-lits[i], -s[i - 1][k - 1]}))
+
+        clauses.append(frozenset({-lits[m - 1], -s[m - 2][k - 1]}))
+        return clauses, next_aux_var
+
+    def _encode_at_most(
+        self,
+        lits: tuple[int, ...],
+        k: int,
+        next_aux_var: int,
+    ) -> tuple[list[Clause], int]:
+        """Dispatches AT_MOST(k) to the configured cardinality encoding strategy."""
+        if self.cardinality_mode == "sequential":
+            return self._encode_at_most_sequential(lits, k, next_aux_var)
+        return self._encode_at_most_combinatorial(lits, k), next_aux_var
+
     def encode_single_clue(
         self,
         owner: Coordinate,
@@ -144,10 +263,54 @@ class CNFEncoder:
         next_aux_var: int,
     ) -> tuple[list[Clause], int]:
         """Encodes one Clue into CNF clauses and returns (clauses, updated_next_aux_var)."""
-        self.validate_and_resolve(clue, grid_size, owner)
-        # TODO (TV 3): Implement CNF conversion for FACT, SAME, DIFFERENT,
-        # EXACTLY, AT_LEAST, AT_MOST, and PARITY.
-        raise NotImplementedError("CNF clue encoding is not implemented yet.")
+        coords = self.validate_and_resolve(clue, grid_size, owner)
+
+        # Polarity normalization: +v_c means Criminal, -v_c means Innocent
+        sign = 1 if clue.target_status == HiddenStatus.CRIMINAL else -1
+        lits = tuple(sign * var_map[coord] for coord in coords)
+        m = len(lits)
+
+        match clue.clue_type:
+            case ClueType.FACT:
+                return [frozenset({lit}) for lit in lits], next_aux_var
+
+            case ClueType.SAME:
+                clauses: list[Clause] = []
+                for i in range(m - 1):
+                    clauses.append(frozenset({-lits[i], lits[i + 1]}))
+                    clauses.append(frozenset({lits[i], -lits[i + 1]}))
+                return clauses, next_aux_var
+
+            case ClueType.DIFFERENT:
+                return [
+                    frozenset(lits),
+                    frozenset(-lit for lit in lits),
+                ], next_aux_var
+
+            case ClueType.AT_MOST:
+                assert clue.count is not None
+                return self._encode_at_most(lits, clue.count, next_aux_var)
+
+            case ClueType.AT_LEAST:
+                assert clue.count is not None
+                # sum(L_i) >= k  <=>  sum(~L_i) <= m - k
+                neg_lits = tuple(-lit for lit in lits)
+                return self._encode_at_most(neg_lits, m - clue.count, next_aux_var)
+
+            case ClueType.EXACTLY:
+                assert clue.count is not None
+                at_most_clauses, next_aux_var = self._encode_at_most(
+                    lits, clue.count, next_aux_var
+                )
+                neg_lits = tuple(-lit for lit in lits)
+                at_least_clauses, next_aux_var = self._encode_at_most(
+                    neg_lits, m - clue.count, next_aux_var
+                )
+                return [*at_most_clauses, *at_least_clauses], next_aux_var
+
+            case ClueType.PARITY:
+                assert clue.count is not None
+                return self._encode_parity(lits, clue.count, next_aux_var)
 
 
 class SemanticEvaluator:
