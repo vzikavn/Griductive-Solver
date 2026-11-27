@@ -1,0 +1,190 @@
+{
+  "puzzle_id": "easy_3x3_01",
+  "grid_size": 3,
+  "description": "Warm-up: row/column counts and direct facts.",
+  "initial_revealed": [
+    [
+      1,
+      0
+    ]
+  ],
+  "cells": [
+    {
+      "coord": [
+        0,
+        0
+      ],
+      "name": "Jon",
+      "profession": "Pilot",
+      "hidden_status": "CRIMINAL",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "COLUMN",
+          "index": 1
+        },
+        "target_status": "CRIMINAL",
+        "count": 2,
+        "text": "Column B has exactly 2 criminals."
+      }
+    },
+    {
+      "coord": [
+        0,
+        1
+      ],
+      "name": "Wes",
+      "profession": "Butler",
+      "hidden_status": "CRIMINAL",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "COLUMN",
+          "index": 2
+        },
+        "target_status": "CRIMINAL",
+        "count": 2,
+        "text": "Column C has exactly 2 criminals."
+      }
+    },
+    {
+      "coord": [
+        0,
+        2
+      ],
+      "name": "Cai",
+      "profession": "Singer",
+      "hidden_status": "CRIMINAL",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "COLUMN",
+          "index": 0
+        },
+        "target_status": "CRIMINAL",
+        "count": 1,
+        "text": "Column A has exactly 1 criminal."
+      }
+    },
+    {
+      "coord": [
+        1,
+        0
+      ],
+      "name": "Finn",
+      "profession": "Driver",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "FACT",
+        "region": {
+          "type": "EXPLICIT_LIST",
+          "explicit_coords": [
+            [
+              2,
+              2
+            ]
+          ]
+        },
+        "target_status": "CRIMINAL",
+        "text": "Ivy is criminal."
+      }
+    },
+    {
+      "coord": [
+        1,
+        1
+      ],
+      "name": "Tia",
+      "profession": "Actor",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "COLUMN",
+          "index": 1,
+          "exclude_self": true
+        },
+        "target_status": "CRIMINAL",
+        "count": 2,
+        "text": "Rest of column B has exactly 2 criminals."
+      }
+    },
+    {
+      "coord": [
+        1,
+        2
+      ],
+      "name": "Cora",
+      "profession": "Poet",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "ROW",
+          "index": 2
+        },
+        "target_status": "CRIMINAL",
+        "count": 2,
+        "text": "Row 3 has exactly 2 criminals."
+      }
+    },
+    {
+      "coord": [
+        2,
+        0
+      ],
+      "name": "Xan",
+      "profession": "Nurse",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "ROW",
+          "index": 1
+        },
+        "target_status": "CRIMINAL",
+        "count": 0,
+        "text": "Row 2 has exactly 0 criminals."
+      }
+    },
+    {
+      "coord": [
+        2,
+        1
+      ],
+      "name": "Ray",
+      "profession": "Clerk",
+      "hidden_status": "CRIMINAL",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "COLUMN",
+          "index": 1
+        },
+        "target_status": "CRIMINAL",
+        "count": 2,
+        "text": "Column B has exactly 2 criminals."
+      }
+    },
+    {
+      "coord": [
+        2,
+        2
+      ],
+      "name": "Ivy",
+      "profession": "Artist",
+      "hidden_status": "CRIMINAL",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "ROW",
+          "index": 1
+        },
+        "target_status": "CRIMINAL",
+        "count": 0,
+        "text": "Row 2 has exactly 0 criminals."
+      }
+    }
+  ],
+  "difficulty": "Easy"
+}

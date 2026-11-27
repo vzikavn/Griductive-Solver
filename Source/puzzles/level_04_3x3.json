@@ -1,0 +1,192 @@
+{
+  "puzzle_id": "easy_3x3_04",
+  "grid_size": 3,
+  "description": "Parity clues and clues that exclude their own suspect.",
+  "initial_revealed": [
+    [
+      2,
+      2
+    ]
+  ],
+  "cells": [
+    {
+      "coord": [
+        0,
+        0
+      ],
+      "name": "Yui",
+      "profession": "Writer",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "PARITY",
+        "region": {
+          "type": "ROW",
+          "index": 2
+        },
+        "target_status": "CRIMINAL",
+        "count": 1,
+        "text": "Row 3: odd number of criminals."
+      }
+    },
+    {
+      "coord": [
+        0,
+        1
+      ],
+      "name": "Xan",
+      "profession": "Florist",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "AT_LEAST",
+        "region": {
+          "type": "ROW",
+          "index": 1
+        },
+        "target_status": "INNOCENT",
+        "count": 3,
+        "text": "Row 2 has at least 3 innocents."
+      }
+    },
+    {
+      "coord": [
+        0,
+        2
+      ],
+      "name": "Wes",
+      "profession": "Barber",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "PARITY",
+        "region": {
+          "type": "ROW",
+          "index": 0
+        },
+        "target_status": "INNOCENT",
+        "count": 1,
+        "text": "Row 1: odd number of innocents."
+      }
+    },
+    {
+      "coord": [
+        1,
+        0
+      ],
+      "name": "Ned",
+      "profession": "Priest",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "PARITY",
+        "region": {
+          "type": "ROW",
+          "index": 0
+        },
+        "target_status": "INNOCENT",
+        "count": 1,
+        "text": "Row 1: odd number of innocents."
+      }
+    },
+    {
+      "coord": [
+        1,
+        1
+      ],
+      "name": "Ivy",
+      "profession": "Jeweler",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "AT_LEAST",
+        "region": {
+          "type": "NEIGHBORS",
+          "center": [
+            0,
+            1
+          ]
+        },
+        "target_status": "INNOCENT",
+        "count": 4,
+        "text": "Next to Xan: at least 4 innocents."
+      }
+    },
+    {
+      "coord": [
+        1,
+        2
+      ],
+      "name": "Uma",
+      "profession": "Tailor",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "PARITY",
+        "region": {
+          "type": "ROW",
+          "index": 1,
+          "exclude_self": true
+        },
+        "target_status": "INNOCENT",
+        "count": 0,
+        "text": "Rest of row 2: even number of innocents."
+      }
+    },
+    {
+      "coord": [
+        2,
+        0
+      ],
+      "name": "Kai",
+      "profession": "Banker",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "FACT",
+        "region": {
+          "type": "EXPLICIT_LIST",
+          "explicit_coords": [
+            [
+              1,
+              1
+            ]
+          ]
+        },
+        "target_status": "INNOCENT",
+        "text": "Ivy is innocent."
+      }
+    },
+    {
+      "coord": [
+        2,
+        1
+      ],
+      "name": "Ben",
+      "profession": "Miner",
+      "hidden_status": "CRIMINAL",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "CORNERS"
+        },
+        "target_status": "CRIMINAL",
+        "count": 0,
+        "text": "Corners have exactly 0 criminals."
+      }
+    },
+    {
+      "coord": [
+        2,
+        2
+      ],
+      "name": "Dev",
+      "profession": "Pilot",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "COLUMN",
+          "index": 0
+        },
+        "target_status": "CRIMINAL",
+        "count": 0,
+        "text": "Column A has exactly 0 criminals."
+      }
+    }
+  ],
+  "difficulty": "Easy"
+}

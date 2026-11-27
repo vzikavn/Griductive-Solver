@@ -1,0 +1,218 @@
+{
+  "puzzle_id": "easy_3x3_03",
+  "grid_size": 3,
+  "description": "Relations between pairs of suspects (SAME / DIFFERENT).",
+  "initial_revealed": [
+    [
+      0,
+      2
+    ]
+  ],
+  "cells": [
+    {
+      "coord": [
+        0,
+        0
+      ],
+      "name": "Ola",
+      "profession": "Lawyer",
+      "hidden_status": "CRIMINAL",
+      "clue": {
+        "type": "DIFFERENT",
+        "region": {
+          "type": "EXPLICIT_LIST",
+          "explicit_coords": [
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              0
+            ]
+          ]
+        },
+        "target_status": "CRIMINAL",
+        "text": "Leo and Wes are different kinds."
+      }
+    },
+    {
+      "coord": [
+        0,
+        1
+      ],
+      "name": "Leo",
+      "profession": "Writer",
+      "hidden_status": "CRIMINAL",
+      "clue": {
+        "type": "SAME",
+        "region": {
+          "type": "EXPLICIT_LIST",
+          "explicit_coords": [
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              2
+            ]
+          ]
+        },
+        "target_status": "CRIMINAL",
+        "text": "Jay and Eva are the same kind."
+      }
+    },
+    {
+      "coord": [
+        0,
+        2
+      ],
+      "name": "Fay",
+      "profession": "Barber",
+      "hidden_status": "CRIMINAL",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "ROW",
+          "index": 0
+        },
+        "target_status": "CRIMINAL",
+        "count": 3,
+        "text": "Row 1 has exactly 3 criminals."
+      }
+    },
+    {
+      "coord": [
+        1,
+        0
+      ],
+      "name": "Wes",
+      "profession": "Nurse",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "COLUMN",
+          "index": 1
+        },
+        "target_status": "INNOCENT",
+        "count": 2,
+        "text": "Column B has exactly 2 innocents."
+      }
+    },
+    {
+      "coord": [
+        1,
+        1
+      ],
+      "name": "Jay",
+      "profession": "Plumber",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "COLUMN",
+          "index": 0
+        },
+        "target_status": "CRIMINAL",
+        "count": 2,
+        "text": "Column A has exactly 2 criminals."
+      }
+    },
+    {
+      "coord": [
+        1,
+        2
+      ],
+      "name": "Eva",
+      "profession": "Butler",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "SAME",
+        "region": {
+          "type": "EXPLICIT_LIST",
+          "explicit_coords": [
+            [
+              0,
+              2
+            ],
+            [
+              2,
+              2
+            ]
+          ]
+        },
+        "target_status": "CRIMINAL",
+        "text": "Fay and Bob are the same kind."
+      }
+    },
+    {
+      "coord": [
+        2,
+        0
+      ],
+      "name": "Ned",
+      "profession": "Doctor",
+      "hidden_status": "CRIMINAL",
+      "clue": {
+        "type": "SAME",
+        "region": {
+          "type": "EXPLICIT_LIST",
+          "explicit_coords": [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              2
+            ]
+          ]
+        },
+        "target_status": "CRIMINAL",
+        "text": "Ola and Fay are the same kind."
+      }
+    },
+    {
+      "coord": [
+        2,
+        1
+      ],
+      "name": "Quin",
+      "profession": "Mayor",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "COLUMN",
+          "index": 1,
+          "exclude_self": true
+        },
+        "target_status": "INNOCENT",
+        "count": 1,
+        "text": "Rest of column B has exactly 1 innocent."
+      }
+    },
+    {
+      "coord": [
+        2,
+        2
+      ],
+      "name": "Bob",
+      "profession": "Baker",
+      "hidden_status": "CRIMINAL",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "COLUMN",
+          "index": 2
+        },
+        "target_status": "INNOCENT",
+        "count": 1,
+        "text": "Column C has exactly 1 innocent."
+      }
+    }
+  ],
+  "difficulty": "Easy"
+}

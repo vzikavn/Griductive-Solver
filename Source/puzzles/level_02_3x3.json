@@ -1,0 +1,194 @@
+{
+  "puzzle_id": "easy_3x3_02",
+  "grid_size": 3,
+  "description": "Adds at-least / at-most bounds and neighbour clues.",
+  "initial_revealed": [
+    [
+      2,
+      0
+    ]
+  ],
+  "cells": [
+    {
+      "coord": [
+        0,
+        0
+      ],
+      "name": "Pam",
+      "profession": "Baker",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "ROW",
+          "index": 0
+        },
+        "target_status": "CRIMINAL",
+        "count": 1,
+        "text": "Row 1 has exactly 1 criminal."
+      }
+    },
+    {
+      "coord": [
+        0,
+        1
+      ],
+      "name": "Ben",
+      "profession": "Janitor",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "AT_LEAST",
+        "region": {
+          "type": "NEIGHBORS",
+          "center": [
+            2,
+            0
+          ]
+        },
+        "target_status": "INNOCENT",
+        "count": 3,
+        "text": "Next to Cai: at least 3 innocents."
+      }
+    },
+    {
+      "coord": [
+        0,
+        2
+      ],
+      "name": "Finn",
+      "profession": "Medic",
+      "hidden_status": "CRIMINAL",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "COLUMN",
+          "index": 2
+        },
+        "target_status": "INNOCENT",
+        "count": 1,
+        "text": "Column C has exactly 1 innocent."
+      }
+    },
+    {
+      "coord": [
+        1,
+        0
+      ],
+      "name": "Dev",
+      "profession": "Painter",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "ROW",
+          "index": 1,
+          "exclude_self": true
+        },
+        "target_status": "CRIMINAL",
+        "count": 0,
+        "text": "Rest of row 2 has exactly 0 criminals."
+      }
+    },
+    {
+      "coord": [
+        1,
+        1
+      ],
+      "name": "Ray",
+      "profession": "Florist",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "AT_LEAST",
+        "region": {
+          "type": "COLUMN",
+          "index": 1
+        },
+        "target_status": "INNOCENT",
+        "count": 2,
+        "text": "Column B has at least 2 innocents."
+      }
+    },
+    {
+      "coord": [
+        1,
+        2
+      ],
+      "name": "Kai",
+      "profession": "Mason",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "AT_MOST",
+        "region": {
+          "type": "ROW",
+          "index": 2
+        },
+        "target_status": "INNOCENT",
+        "count": 2,
+        "text": "Row 3 has at most 2 innocents."
+      }
+    },
+    {
+      "coord": [
+        2,
+        0
+      ],
+      "name": "Cai",
+      "profession": "Actor",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "FACT",
+        "region": {
+          "type": "EXPLICIT_LIST",
+          "explicit_coords": [
+            [
+              0,
+              1
+            ]
+          ]
+        },
+        "target_status": "INNOCENT",
+        "text": "Ben is innocent."
+      }
+    },
+    {
+      "coord": [
+        2,
+        1
+      ],
+      "name": "Uma",
+      "profession": "Barber",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "COLUMN",
+          "index": 0
+        },
+        "target_status": "INNOCENT",
+        "count": 3,
+        "text": "Column A has exactly 3 innocents."
+      }
+    },
+    {
+      "coord": [
+        2,
+        2
+      ],
+      "name": "Wes",
+      "profession": "Judge",
+      "hidden_status": "CRIMINAL",
+      "clue": {
+        "type": "AT_MOST",
+        "region": {
+          "type": "ROW",
+          "index": 2,
+          "exclude_self": true
+        },
+        "target_status": "CRIMINAL",
+        "count": 0,
+        "text": "Rest of row 3 has at most 0 criminals."
+      }
+    }
+  ],
+  "difficulty": "Easy"
+}

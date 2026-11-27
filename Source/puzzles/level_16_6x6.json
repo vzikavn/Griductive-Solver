@@ -1,0 +1,821 @@
+{
+  "puzzle_id": "expert_6x6_01",
+  "grid_size": 6,
+  "description": "Big board, neighbour-heavy deduction.",
+  "initial_revealed": [
+    [
+      2,
+      0
+    ]
+  ],
+  "cells": [
+    {
+      "coord": [
+        0,
+        0
+      ],
+      "name": "Fay",
+      "profession": "Tutor",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "EXPLICIT_LIST",
+          "explicit_coords": [
+            [
+              0,
+              2
+            ],
+            [
+              1,
+              5
+            ],
+            [
+              3,
+              1
+            ]
+          ]
+        },
+        "target_status": "CRIMINAL",
+        "count": 1,
+        "text": "Gia, Pam, Jay have exactly 1 criminal."
+      }
+    },
+    {
+      "coord": [
+        0,
+        1
+      ],
+      "name": "Bob",
+      "profession": "Banker",
+      "hidden_status": "CRIMINAL",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "NEIGHBORS",
+          "center": [
+            2,
+            5
+          ]
+        },
+        "target_status": "CRIMINAL",
+        "count": 3,
+        "text": "Next to Kim: exactly 3 criminals."
+      }
+    },
+    {
+      "coord": [
+        0,
+        2
+      ],
+      "name": "Gia",
+      "profession": "Guard",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "NEIGHBORS",
+          "center": [
+            2,
+            4
+          ]
+        },
+        "target_status": "INNOCENT",
+        "count": 4,
+        "text": "Next to Eli: exactly 4 innocents."
+      }
+    },
+    {
+      "coord": [
+        0,
+        3
+      ],
+      "name": "Yui",
+      "profession": "Chef",
+      "hidden_status": "CRIMINAL",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "ROW",
+          "index": 5
+        },
+        "target_status": "INNOCENT",
+        "count": 5,
+        "text": "Row 6 has exactly 5 innocents."
+      }
+    },
+    {
+      "coord": [
+        0,
+        4
+      ],
+      "name": "Ray",
+      "profession": "Priest",
+      "hidden_status": "CRIMINAL",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "COLUMN",
+          "index": 3
+        },
+        "target_status": "INNOCENT",
+        "count": 4,
+        "text": "Column D has exactly 4 innocents."
+      }
+    },
+    {
+      "coord": [
+        0,
+        5
+      ],
+      "name": "Gus",
+      "profession": "Judge",
+      "hidden_status": "CRIMINAL",
+      "clue": {
+        "type": "FACT",
+        "region": {
+          "type": "EXPLICIT_LIST",
+          "explicit_coords": [
+            [
+              2,
+              0
+            ]
+          ]
+        },
+        "target_status": "CRIMINAL",
+        "text": "Dan is criminal."
+      }
+    },
+    {
+      "coord": [
+        1,
+        0
+      ],
+      "name": "Cora",
+      "profession": "Lawyer",
+      "hidden_status": "CRIMINAL",
+      "clue": {
+        "type": "PARITY",
+        "region": {
+          "type": "COLUMN",
+          "index": 3
+        },
+        "target_status": "CRIMINAL",
+        "count": 0,
+        "text": "Column D: even number of criminals."
+      }
+    },
+    {
+      "coord": [
+        1,
+        1
+      ],
+      "name": "Leo",
+      "profession": "Writer",
+      "hidden_status": "CRIMINAL",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "NEIGHBORS",
+          "center": [
+            5,
+            4
+          ]
+        },
+        "target_status": "INNOCENT",
+        "count": 3,
+        "text": "Next to Finn: exactly 3 innocents."
+      }
+    },
+    {
+      "coord": [
+        1,
+        2
+      ],
+      "name": "Cai",
+      "profession": "Painter",
+      "hidden_status": "CRIMINAL",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "ROW",
+          "index": 2
+        },
+        "target_status": "CRIMINAL",
+        "count": 4,
+        "text": "Row 3 has exactly 4 criminals."
+      }
+    },
+    {
+      "coord": [
+        1,
+        3
+      ],
+      "name": "Eva",
+      "profession": "Barber",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "ROW",
+          "index": 3
+        },
+        "target_status": "INNOCENT",
+        "count": 2,
+        "text": "Row 4 has exactly 2 innocents."
+      }
+    },
+    {
+      "coord": [
+        1,
+        4
+      ],
+      "name": "Quin",
+      "profession": "Actor",
+      "hidden_status": "CRIMINAL",
+      "clue": {
+        "type": "DIFFERENT",
+        "region": {
+          "type": "EXPLICIT_LIST",
+          "explicit_coords": [
+            [
+              2,
+              4
+            ],
+            [
+              3,
+              2
+            ]
+          ]
+        },
+        "target_status": "CRIMINAL",
+        "text": "Eli and Dev are different kinds."
+      }
+    },
+    {
+      "coord": [
+        1,
+        5
+      ],
+      "name": "Pam",
+      "profession": "Janitor",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "AT_MOST",
+        "region": {
+          "type": "ROW",
+          "index": 3
+        },
+        "target_status": "INNOCENT",
+        "count": 3,
+        "text": "Row 4 has at most 3 innocents."
+      }
+    },
+    {
+      "coord": [
+        2,
+        0
+      ],
+      "name": "Dan",
+      "profession": "Florist",
+      "hidden_status": "CRIMINAL",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "EXPLICIT_LIST",
+          "explicit_coords": [
+            [
+              0,
+              0
+            ],
+            [
+              5,
+              2
+            ]
+          ]
+        },
+        "target_status": "CRIMINAL",
+        "count": 0,
+        "text": "Fay, Sam have exactly 0 criminals."
+      }
+    },
+    {
+      "coord": [
+        2,
+        1
+      ],
+      "name": "Mia",
+      "profession": "Clerk",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "AT_LEAST",
+        "region": {
+          "type": "COLUMN",
+          "index": 1
+        },
+        "target_status": "CRIMINAL",
+        "count": 3,
+        "text": "Column B has at least 3 criminals."
+      }
+    },
+    {
+      "coord": [
+        2,
+        2
+      ],
+      "name": "Zed",
+      "profession": "Poet",
+      "hidden_status": "CRIMINAL",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "BOUNDARY"
+        },
+        "target_status": "INNOCENT",
+        "count": 9,
+        "text": "Border has exactly 9 innocents."
+      }
+    },
+    {
+      "coord": [
+        2,
+        3
+      ],
+      "name": "Hugo",
+      "profession": "Jeweler",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "DIFFERENT",
+        "region": {
+          "type": "EXPLICIT_LIST",
+          "explicit_coords": [
+            [
+              2,
+              5
+            ],
+            [
+              3,
+              5
+            ]
+          ]
+        },
+        "target_status": "CRIMINAL",
+        "text": "Kim and Ivy are different kinds."
+      }
+    },
+    {
+      "coord": [
+        2,
+        4
+      ],
+      "name": "Eli",
+      "profession": "Doctor",
+      "hidden_status": "CRIMINAL",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "BOUNDARY"
+        },
+        "target_status": "INNOCENT",
+        "count": 9,
+        "text": "Border has exactly 9 innocents."
+      }
+    },
+    {
+      "coord": [
+        2,
+        5
+      ],
+      "name": "Kim",
+      "profession": "Farmer",
+      "hidden_status": "CRIMINAL",
+      "clue": {
+        "type": "AT_MOST",
+        "region": {
+          "type": "ROW",
+          "index": 5
+        },
+        "target_status": "CRIMINAL",
+        "count": 1,
+        "text": "Row 6 has at most 1 criminal."
+      }
+    },
+    {
+      "coord": [
+        3,
+        0
+      ],
+      "name": "Tia",
+      "profession": "Waiter",
+      "hidden_status": "CRIMINAL",
+      "clue": {
+        "type": "DIFFERENT",
+        "region": {
+          "type": "EXPLICIT_LIST",
+          "explicit_coords": [
+            [
+              2,
+              2
+            ],
+            [
+              5,
+              0
+            ]
+          ]
+        },
+        "target_status": "CRIMINAL",
+        "text": "Zed and Hal are different kinds."
+      }
+    },
+    {
+      "coord": [
+        3,
+        1
+      ],
+      "name": "Jay",
+      "profession": "Baker",
+      "hidden_status": "CRIMINAL",
+      "clue": {
+        "type": "DIFFERENT",
+        "region": {
+          "type": "EXPLICIT_LIST",
+          "explicit_coords": [
+            [
+              0,
+              3
+            ],
+            [
+              4,
+              1
+            ]
+          ]
+        },
+        "target_status": "CRIMINAL",
+        "text": "Yui and Wes are different kinds."
+      }
+    },
+    {
+      "coord": [
+        3,
+        2
+      ],
+      "name": "Dev",
+      "profession": "Nurse",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "FACT",
+        "region": {
+          "type": "EXPLICIT_LIST",
+          "explicit_coords": [
+            [
+              0,
+              1
+            ]
+          ]
+        },
+        "target_status": "CRIMINAL",
+        "text": "Bob is criminal."
+      }
+    },
+    {
+      "coord": [
+        3,
+        3
+      ],
+      "name": "Kai",
+      "profession": "Coder",
+      "hidden_status": "CRIMINAL",
+      "clue": {
+        "type": "AT_LEAST",
+        "region": {
+          "type": "COLUMN",
+          "index": 3
+        },
+        "target_status": "INNOCENT",
+        "count": 3,
+        "text": "Column D has at least 3 innocents."
+      }
+    },
+    {
+      "coord": [
+        3,
+        4
+      ],
+      "name": "Uma",
+      "profession": "Pilot",
+      "hidden_status": "CRIMINAL",
+      "clue": {
+        "type": "SAME",
+        "region": {
+          "type": "EXPLICIT_LIST",
+          "explicit_coords": [
+            [
+              3,
+              2
+            ],
+            [
+              4,
+              2
+            ]
+          ]
+        },
+        "target_status": "CRIMINAL",
+        "text": "Dev and Vic are the same kind."
+      }
+    },
+    {
+      "coord": [
+        3,
+        5
+      ],
+      "name": "Ivy",
+      "profession": "Dancer",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "ROW",
+          "index": 3
+        },
+        "target_status": "INNOCENT",
+        "count": 2,
+        "text": "Row 4 has exactly 2 innocents."
+      }
+    },
+    {
+      "coord": [
+        4,
+        0
+      ],
+      "name": "Ian",
+      "profession": "Mason",
+      "hidden_status": "CRIMINAL",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "NEIGHBORS",
+          "center": [
+            0,
+            1
+          ]
+        },
+        "target_status": "INNOCENT",
+        "count": 2,
+        "text": "Next to Bob: exactly 2 innocents."
+      }
+    },
+    {
+      "coord": [
+        4,
+        1
+      ],
+      "name": "Wes",
+      "profession": "Driver",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "ROW",
+          "index": 4
+        },
+        "target_status": "INNOCENT",
+        "count": 3,
+        "text": "Row 5 has exactly 3 innocents."
+      }
+    },
+    {
+      "coord": [
+        4,
+        2
+      ],
+      "name": "Vic",
+      "profession": "Plumber",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "NEIGHBORS",
+          "center": [
+            0,
+            4
+          ]
+        },
+        "target_status": "INNOCENT",
+        "count": 2,
+        "text": "Next to Ray: exactly 2 innocents."
+      }
+    },
+    {
+      "coord": [
+        4,
+        3
+      ],
+      "name": "Ned",
+      "profession": "Miner",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "DIFFERENT",
+        "region": {
+          "type": "EXPLICIT_LIST",
+          "explicit_coords": [
+            [
+              2,
+              1
+            ],
+            [
+              2,
+              4
+            ]
+          ]
+        },
+        "target_status": "CRIMINAL",
+        "text": "Mia and Eli are different kinds."
+      }
+    },
+    {
+      "coord": [
+        4,
+        4
+      ],
+      "name": "Ava",
+      "profession": "Mayor",
+      "hidden_status": "CRIMINAL",
+      "clue": {
+        "type": "AT_LEAST",
+        "region": {
+          "type": "ROW",
+          "index": 5
+        },
+        "target_status": "CRIMINAL",
+        "count": 1,
+        "text": "Row 6 has at least 1 criminal."
+      }
+    },
+    {
+      "coord": [
+        4,
+        5
+      ],
+      "name": "Ola",
+      "profession": "Sailor",
+      "hidden_status": "CRIMINAL",
+      "clue": {
+        "type": "SAME",
+        "region": {
+          "type": "EXPLICIT_LIST",
+          "explicit_coords": [
+            [
+              3,
+              2
+            ],
+            [
+              4,
+              3
+            ]
+          ]
+        },
+        "target_status": "CRIMINAL",
+        "text": "Dev and Ned are the same kind."
+      }
+    },
+    {
+      "coord": [
+        5,
+        0
+      ],
+      "name": "Hal",
+      "profession": "Singer",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "AT_LEAST",
+        "region": {
+          "type": "NEIGHBORS",
+          "center": [
+            4,
+            2
+          ]
+        },
+        "target_status": "CRIMINAL",
+        "count": 1,
+        "text": "Next to Vic: at least 1 criminal."
+      }
+    },
+    {
+      "coord": [
+        5,
+        1
+      ],
+      "name": "Ben",
+      "profession": "Medic",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "AT_LEAST",
+        "region": {
+          "type": "EXPLICIT_LIST",
+          "explicit_coords": [
+            [
+              4,
+              0
+            ],
+            [
+              4,
+              3
+            ],
+            [
+              4,
+              5
+            ]
+          ]
+        },
+        "target_status": "INNOCENT",
+        "count": 1,
+        "text": "Ian, Ned, Ola have at least 1 innocent."
+      }
+    },
+    {
+      "coord": [
+        5,
+        2
+      ],
+      "name": "Sam",
+      "profession": "Tailor",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "COLUMN",
+          "index": 4
+        },
+        "target_status": "INNOCENT",
+        "count": 0,
+        "text": "Column E has exactly 0 innocents."
+      }
+    },
+    {
+      "coord": [
+        5,
+        3
+      ],
+      "name": "Jon",
+      "profession": "Smith",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "AT_LEAST",
+        "region": {
+          "type": "ROW",
+          "index": 4
+        },
+        "target_status": "INNOCENT",
+        "count": 3,
+        "text": "Row 5 has at least 3 innocents."
+      }
+    },
+    {
+      "coord": [
+        5,
+        4
+      ],
+      "name": "Finn",
+      "profession": "Artist",
+      "hidden_status": "CRIMINAL",
+      "clue": {
+        "type": "DIFFERENT",
+        "region": {
+          "type": "EXPLICIT_LIST",
+          "explicit_coords": [
+            [
+              4,
+              5
+            ],
+            [
+              5,
+              5
+            ]
+          ]
+        },
+        "target_status": "CRIMINAL",
+        "text": "Ola and Xan are different kinds."
+      }
+    },
+    {
+      "coord": [
+        5,
+        5
+      ],
+      "name": "Xan",
+      "profession": "Butler",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "COLUMN",
+          "index": 0
+        },
+        "target_status": "CRIMINAL",
+        "count": 4,
+        "text": "Column A has exactly 4 criminals."
+      }
+    }
+  ],
+  "difficulty": "Expert"
+}

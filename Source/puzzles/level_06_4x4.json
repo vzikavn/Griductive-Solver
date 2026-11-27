@@ -1,0 +1,346 @@
+{
+  "puzzle_id": "medium_4x4_02",
+  "grid_size": 4,
+  "description": "Corners and neighbourhood clues.",
+  "initial_revealed": [
+    [
+      3,
+      2
+    ]
+  ],
+  "cells": [
+    {
+      "coord": [
+        0,
+        0
+      ],
+      "name": "Kai",
+      "profession": "Barber",
+      "hidden_status": "CRIMINAL",
+      "clue": {
+        "type": "AT_MOST",
+        "region": {
+          "type": "ROW",
+          "index": 2
+        },
+        "target_status": "CRIMINAL",
+        "count": 2,
+        "text": "Row 3 has at most 2 criminals."
+      }
+    },
+    {
+      "coord": [
+        0,
+        1
+      ],
+      "name": "Zed",
+      "profession": "Butler",
+      "hidden_status": "CRIMINAL",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "NEIGHBORS",
+          "center": [
+            2,
+            1
+          ]
+        },
+        "target_status": "INNOCENT",
+        "count": 6,
+        "text": "Next to Ola: exactly 6 innocents."
+      }
+    },
+    {
+      "coord": [
+        0,
+        2
+      ],
+      "name": "Dev",
+      "profession": "Priest",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "AT_MOST",
+        "region": {
+          "type": "ROW",
+          "index": 3
+        },
+        "target_status": "INNOCENT",
+        "count": 3,
+        "text": "Row 4 has at most 3 innocents."
+      }
+    },
+    {
+      "coord": [
+        0,
+        3
+      ],
+      "name": "Ivy",
+      "profession": "Coder",
+      "hidden_status": "CRIMINAL",
+      "clue": {
+        "type": "FACT",
+        "region": {
+          "type": "EXPLICIT_LIST",
+          "explicit_coords": [
+            [
+              1,
+              0
+            ]
+          ]
+        },
+        "target_status": "CRIMINAL",
+        "text": "Hal is criminal."
+      }
+    },
+    {
+      "coord": [
+        1,
+        0
+      ],
+      "name": "Hal",
+      "profession": "Painter",
+      "hidden_status": "CRIMINAL",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "NEIGHBORS",
+          "center": [
+            1,
+            1
+          ]
+        },
+        "target_status": "INNOCENT",
+        "count": 4,
+        "text": "Next to Wes: exactly 4 innocents."
+      }
+    },
+    {
+      "coord": [
+        1,
+        1
+      ],
+      "name": "Wes",
+      "profession": "Writer",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "NEIGHBORS",
+          "center": [
+            1,
+            2
+          ]
+        },
+        "target_status": "INNOCENT",
+        "count": 5,
+        "text": "Next to Hugo: exactly 5 innocents."
+      }
+    },
+    {
+      "coord": [
+        1,
+        2
+      ],
+      "name": "Hugo",
+      "profession": "Tutor",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "NEIGHBORS",
+          "center": [
+            1,
+            2
+          ]
+        },
+        "target_status": "CRIMINAL",
+        "count": 3,
+        "text": "Next to Hugo: exactly 3 criminals."
+      }
+    },
+    {
+      "coord": [
+        1,
+        3
+      ],
+      "name": "Uma",
+      "profession": "Judge",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "AT_LEAST",
+        "region": {
+          "type": "ROW",
+          "index": 0
+        },
+        "target_status": "CRIMINAL",
+        "count": 3,
+        "text": "Row 1 has at least 3 criminals."
+      }
+    },
+    {
+      "coord": [
+        2,
+        0
+      ],
+      "name": "Bob",
+      "profession": "Mayor",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "FACT",
+        "region": {
+          "type": "EXPLICIT_LIST",
+          "explicit_coords": [
+            [
+              1,
+              3
+            ]
+          ]
+        },
+        "target_status": "INNOCENT",
+        "text": "Uma is innocent."
+      }
+    },
+    {
+      "coord": [
+        2,
+        1
+      ],
+      "name": "Ola",
+      "profession": "Guard",
+      "hidden_status": "CRIMINAL",
+      "clue": {
+        "type": "AT_LEAST",
+        "region": {
+          "type": "CORNERS"
+        },
+        "target_status": "INNOCENT",
+        "count": 2,
+        "text": "Corners have at least 2 innocents."
+      }
+    },
+    {
+      "coord": [
+        2,
+        2
+      ],
+      "name": "Finn",
+      "profession": "Lawyer",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "AT_LEAST",
+        "region": {
+          "type": "ROW",
+          "index": 3
+        },
+        "target_status": "INNOCENT",
+        "count": 2,
+        "text": "Row 4 has at least 2 innocents."
+      }
+    },
+    {
+      "coord": [
+        2,
+        3
+      ],
+      "name": "Mia",
+      "profession": "Pilot",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "ROW",
+          "index": 2
+        },
+        "target_status": "INNOCENT",
+        "count": 3,
+        "text": "Row 3 has exactly 3 innocents."
+      }
+    },
+    {
+      "coord": [
+        3,
+        0
+      ],
+      "name": "Ben",
+      "profession": "Mason",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "AT_MOST",
+        "region": {
+          "type": "NEIGHBORS",
+          "center": [
+            0,
+            1
+          ]
+        },
+        "target_status": "CRIMINAL",
+        "count": 2,
+        "text": "Next to Zed: at most 2 criminals."
+      }
+    },
+    {
+      "coord": [
+        3,
+        1
+      ],
+      "name": "Eva",
+      "profession": "Tailor",
+      "hidden_status": "CRIMINAL",
+      "clue": {
+        "type": "AT_LEAST",
+        "region": {
+          "type": "ROW",
+          "index": 3
+        },
+        "target_status": "CRIMINAL",
+        "count": 1,
+        "text": "Row 4 has at least 1 criminal."
+      }
+    },
+    {
+      "coord": [
+        3,
+        2
+      ],
+      "name": "Jay",
+      "profession": "Clerk",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "NEIGHBORS",
+          "center": [
+            2,
+            3
+          ]
+        },
+        "target_status": "INNOCENT",
+        "count": 5,
+        "text": "Next to Mia: exactly 5 innocents."
+      }
+    },
+    {
+      "coord": [
+        3,
+        3
+      ],
+      "name": "Tia",
+      "profession": "Sailor",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "NEIGHBORS",
+          "center": [
+            0,
+            3
+          ]
+        },
+        "target_status": "INNOCENT",
+        "count": 3,
+        "text": "Next to Ivy: exactly 3 innocents."
+      }
+    }
+  ],
+  "difficulty": "Medium"
+}

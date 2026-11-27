@@ -1,0 +1,403 @@
+{
+  "puzzle_id": "medium_4x4_04",
+  "grid_size": 4,
+  "description": "Pair relations plus explicit-list regions.",
+  "initial_revealed": [
+    [
+      1,
+      2
+    ]
+  ],
+  "cells": [
+    {
+      "coord": [
+        0,
+        0
+      ],
+      "name": "Leo",
+      "profession": "Dancer",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "COLUMN",
+          "index": 0
+        },
+        "target_status": "CRIMINAL",
+        "count": 1,
+        "text": "Column A has exactly 1 criminal."
+      }
+    },
+    {
+      "coord": [
+        0,
+        1
+      ],
+      "name": "Hugo",
+      "profession": "Tailor",
+      "hidden_status": "CRIMINAL",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "ROW",
+          "index": 0
+        },
+        "target_status": "CRIMINAL",
+        "count": 2,
+        "text": "Row 1 has exactly 2 criminals."
+      }
+    },
+    {
+      "coord": [
+        0,
+        2
+      ],
+      "name": "Dev",
+      "profession": "Baker",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "DIFFERENT",
+        "region": {
+          "type": "EXPLICIT_LIST",
+          "explicit_coords": [
+            [
+              0,
+              3
+            ],
+            [
+              2,
+              2
+            ]
+          ]
+        },
+        "target_status": "CRIMINAL",
+        "text": "Ivy and Ben are different kinds."
+      }
+    },
+    {
+      "coord": [
+        0,
+        3
+      ],
+      "name": "Ivy",
+      "profession": "Florist",
+      "hidden_status": "CRIMINAL",
+      "clue": {
+        "type": "FACT",
+        "region": {
+          "type": "EXPLICIT_LIST",
+          "explicit_coords": [
+            [
+              2,
+              1
+            ]
+          ]
+        },
+        "target_status": "INNOCENT",
+        "text": "Ned is innocent."
+      }
+    },
+    {
+      "coord": [
+        1,
+        0
+      ],
+      "name": "Fay",
+      "profession": "Sailor",
+      "hidden_status": "CRIMINAL",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "COLUMN",
+          "index": 3
+        },
+        "target_status": "INNOCENT",
+        "count": 0,
+        "text": "Column D has exactly 0 innocents."
+      }
+    },
+    {
+      "coord": [
+        1,
+        1
+      ],
+      "name": "Ray",
+      "profession": "Banker",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "FACT",
+        "region": {
+          "type": "EXPLICIT_LIST",
+          "explicit_coords": [
+            [
+              2,
+              2
+            ]
+          ]
+        },
+        "target_status": "INNOCENT",
+        "text": "Ben is innocent."
+      }
+    },
+    {
+      "coord": [
+        1,
+        2
+      ],
+      "name": "Kim",
+      "profession": "Guard",
+      "hidden_status": "CRIMINAL",
+      "clue": {
+        "type": "FACT",
+        "region": {
+          "type": "EXPLICIT_LIST",
+          "explicit_coords": [
+            [
+              1,
+              0
+            ]
+          ]
+        },
+        "target_status": "CRIMINAL",
+        "text": "Fay is criminal."
+      }
+    },
+    {
+      "coord": [
+        1,
+        3
+      ],
+      "name": "Cora",
+      "profession": "Priest",
+      "hidden_status": "CRIMINAL",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "EXPLICIT_LIST",
+          "explicit_coords": [
+            [
+              0,
+              1
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              3,
+              1
+            ]
+          ]
+        },
+        "target_status": "INNOCENT",
+        "count": 2,
+        "text": "Hugo, Vic, Dan have exactly 2 innocents."
+      }
+    },
+    {
+      "coord": [
+        2,
+        0
+      ],
+      "name": "Vic",
+      "profession": "Poet",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "DIFFERENT",
+        "region": {
+          "type": "EXPLICIT_LIST",
+          "explicit_coords": [
+            [
+              0,
+              2
+            ],
+            [
+              2,
+              3
+            ]
+          ]
+        },
+        "target_status": "CRIMINAL",
+        "text": "Dev and Eva are different kinds."
+      }
+    },
+    {
+      "coord": [
+        2,
+        1
+      ],
+      "name": "Ned",
+      "profession": "Writer",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "COLUMN",
+          "index": 0
+        },
+        "target_status": "CRIMINAL",
+        "count": 1,
+        "text": "Column A has exactly 1 criminal."
+      }
+    },
+    {
+      "coord": [
+        2,
+        2
+      ],
+      "name": "Ben",
+      "profession": "Smith",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "FACT",
+        "region": {
+          "type": "EXPLICIT_LIST",
+          "explicit_coords": [
+            [
+              3,
+              2
+            ]
+          ]
+        },
+        "target_status": "INNOCENT",
+        "text": "Jay is innocent."
+      }
+    },
+    {
+      "coord": [
+        2,
+        3
+      ],
+      "name": "Eva",
+      "profession": "Mason",
+      "hidden_status": "CRIMINAL",
+      "clue": {
+        "type": "DIFFERENT",
+        "region": {
+          "type": "EXPLICIT_LIST",
+          "explicit_coords": [
+            [
+              1,
+              2
+            ],
+            [
+              2,
+              1
+            ]
+          ]
+        },
+        "target_status": "CRIMINAL",
+        "text": "Kim and Ned are different kinds."
+      }
+    },
+    {
+      "coord": [
+        3,
+        0
+      ],
+      "name": "Jon",
+      "profession": "Lawyer",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "NEIGHBORS",
+          "center": [
+            2,
+            1
+          ]
+        },
+        "target_status": "INNOCENT",
+        "count": 6,
+        "text": "Next to Ned: exactly 6 innocents."
+      }
+    },
+    {
+      "coord": [
+        3,
+        1
+      ],
+      "name": "Dan",
+      "profession": "Jeweler",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "EXACTLY",
+        "region": {
+          "type": "EXPLICIT_LIST",
+          "explicit_coords": [
+            [
+              2,
+              1
+            ],
+            [
+              3,
+              0
+            ],
+            [
+              3,
+              1
+            ]
+          ]
+        },
+        "target_status": "CRIMINAL",
+        "count": 0,
+        "text": "Ned, Jon, Dan have exactly 0 criminals."
+      }
+    },
+    {
+      "coord": [
+        3,
+        2
+      ],
+      "name": "Jay",
+      "profession": "Farmer",
+      "hidden_status": "INNOCENT",
+      "clue": {
+        "type": "SAME",
+        "region": {
+          "type": "EXPLICIT_LIST",
+          "explicit_coords": [
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              3
+            ]
+          ]
+        },
+        "target_status": "CRIMINAL",
+        "text": "Hugo and Cora are the same kind."
+      }
+    },
+    {
+      "coord": [
+        3,
+        3
+      ],
+      "name": "Sam",
+      "profession": "Butler",
+      "hidden_status": "CRIMINAL",
+      "clue": {
+        "type": "SAME",
+        "region": {
+          "type": "EXPLICIT_LIST",
+          "explicit_coords": [
+            [
+              0,
+              0
+            ],
+            [
+              2,
+              1
+            ]
+          ]
+        },
+        "target_status": "CRIMINAL",
+        "text": "Leo and Ned are the same kind."
+      }
+    }
+  ],
+  "difficulty": "Medium"
+}
