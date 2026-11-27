@@ -314,7 +314,21 @@ class CNFEncoder:
 
 
 class SemanticEvaluator:
-    """Direct semantic evaluator verifying clues on a full assignment WITHOUT CNF."""
+    """Direct semantic evaluator verifying clues on a full assignment WITHOUT CNF.
+
+    Semantics (shared contract with ``CNFEncoder.encode_single_clue``). Let ``R`` be the
+    region resolved by ``validate_and_resolve`` (``exclude_self`` already applied) and
+    ``hits`` the number of cells in ``R`` whose status equals ``clue.target_status``:
+
+    - FACT:       every cell of ``R`` has status ``target_status`` (``hits == |R|``).
+    - SAME:       all cells of ``R`` share one status (``target_status`` is irrelevant).
+    - DIFFERENT:  the cells of ``R`` do NOT all share one status (exactly-different for
+                  a 2-cell region; ``target_status`` is irrelevant).
+    - EXACTLY:    ``hits == count``.
+    - AT_LEAST:   ``hits >= count``.
+    - AT_MOST:    ``hits <= count``.
+    - PARITY:     ``hits % 2 == count`` (``count`` 0 = EVEN, 1 = ODD).
+    """
 
     @staticmethod
     def evaluate_clue(
@@ -324,6 +338,35 @@ class SemanticEvaluator:
         owner_coord: Coordinate | None = None,
     ) -> bool:
         """Returns True iff `clue` holds under the complete `assignment`."""
-        CNFEncoder.validate_and_resolve(clue, grid_size, owner_coord)
-        # TODO (TV 2): Directly evaluate each ClueType on `assignment`.
-        raise NotImplementedError("Direct semantic evaluator is not implemented yet.")
+        coords = CNFEncoder.validate_and_resolve(clue, grid_size, owner_coord)
+
+        missing = [coord for coord in coords if coord not in assignment]
+        if missing:
+            raise ValueError(
+                f"Assignment is incomplete: missing {missing} required by '{clue.text}'."
+            )
+
+        statuses = [assignment[coord] for coord in coords]
+        hits = sum(1 for status in statuses if status == clue.target_status)
+
+        match clue.clue_type:
+            case ClueType.FACT:
+                return hits == len(coords)
+            case ClueType.SAME:
+                return len(set(statuses)) == 1
+            case ClueType.DIFFERENT:
+                return len(set(statuses)) > 1
+            case ClueType.EXACTLY:
+                assert clue.count is not None
+                return hits == clue.count
+            case ClueType.AT_LEAST:
+                assert clue.count is not None
+                return hits >= clue.count
+            case ClueType.AT_MOST:
+                assert clue.count is not None
+                return hits <= clue.count
+            case ClueType.PARITY:
+                assert clue.count is not None
+                return hits % 2 == clue.count
+            case _:
+                raise ValueError(f"Unsupported ClueType: {clue.clue_type}")
