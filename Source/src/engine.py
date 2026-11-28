@@ -124,7 +124,7 @@ class GameEngine:
                 coord=coord,
                 proposed_status=proposed_status,
                 response_type=VerdictResponseType.ALREADY_REVEALED,
-                message=f"{cell.name} at {coord} is already revealed as {cell.revealed_status}.",
+                message=f"{cell.name} is already revealed as {cell.revealed_status}.",
                 public_state=self.get_public_knowledge_state(),
             )
 
@@ -141,20 +141,11 @@ class GameEngine:
                 if cell.hidden_status == HiddenStatus.CRIMINAL
                 else RevealedStatus.INNOCENT
             )
-            msg = (
-                f"ACCEPTED: {cell.name} ({cell.profession}) is confirmed "
-                f"{cell.revealed_status}! Clue revealed."
-            )
+            msg = f"ACCEPTED: {cell.name} is confirmed {cell.revealed_status}!"
         elif response_type == VerdictResponseType.CONTRADICTED:
-            msg = (
-                f"CONTRADICTED: Marking {cell.name} at {coord} as {proposed_status} "
-                f"violates logical deductions from revealed clues."
-            )
+            msg = f"CONTRADICTED: {cell.name} cannot be {proposed_status}."
         else:
-            msg = (
-                f"NOT_PROVABLE: {cell.name} at {coord} cannot be proven "
-                f"{proposed_status} from current public clues alone."
-            )
+            msg = f"NOT_PROVABLE: {cell.name} is not proven {proposed_status}."
 
         return VerdictResult(
             coord=coord,
